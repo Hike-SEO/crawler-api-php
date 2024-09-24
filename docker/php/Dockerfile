@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM --platform=linux/amd64 ubuntu:22.04
 
 LABEL maintainer="Taylor Otwell"
 
@@ -57,7 +57,8 @@ RUN apt-get update \
     && apt-get install -y wget \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
-    && apt-get update && apt-get -y install google-chrome-stable
+    && apt-get update  \
+    && apt-get -y install google-chrome-stable
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.3
 
