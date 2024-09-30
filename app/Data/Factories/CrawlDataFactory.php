@@ -3,20 +3,20 @@
 namespace App\Data\Factories;
 
 use App\Data\CrawlData;
-use HeadlessChromium\Page;
 use PHPHtmlParser\Dom;
+use Psr\Http\Message\ResponseInterface;
 
 class CrawlDataFactory
 {
-    public function fromPage(Page $page): CrawlData
+    public function fromResponse(string $url, ResponseInterface $response): CrawlData
     {
-        $html = $page->getHtml();
+        $html = $response->getBody()->getContents();
 
         $dom = new Dom;
         $dom->loadStr($html);
 
         return CrawlData::from([
-            'url' => $page->getCurrentUrl(),
+            'url' => $url,
             'h1s' => $this->getInnerHtmls($dom->find('h1')),
             'h2s' => $this->getInnerHtmls($dom->find('h2')),
             'h3s' => $this->getInnerHtmls($dom->find('h3')),

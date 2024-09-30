@@ -12,6 +12,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "paquettg/php-html-parser": "^2.2",
+        "spatie/crawler": "^8.2",
         "spatie/laravel-data": "^4.9"
     },
     "require-dev": {
