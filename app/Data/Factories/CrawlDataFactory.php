@@ -24,6 +24,12 @@ class CrawlDataFactory
         ]);
     }
 
+    public function parsePerformance(CrawlData $crawlData, $performance): CrawlData
+    {
+        // TODO
+        return $crawlData;
+    }
+
     private function getInnerHtmls(Dom\Collection $collection): array
     {
         return collect($collection->toArray())

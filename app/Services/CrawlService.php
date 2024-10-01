@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Data\CrawlData;
+use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Observers\SimpleCrawlObserver;
 use Spatie\Browsershot\Browsershot;
@@ -14,6 +15,7 @@ class CrawlService
     public function __construct(
         private readonly SimpleCrawlObserver $crawlObserver,
         private readonly Browsershot $browsershot,
+        private readonly CrawlDataFactory $crawlDataFactory,
     ) {
         $this->browsershot->noSandbox();
     }
@@ -33,6 +35,14 @@ class CrawlService
             ->setTotalCrawlLimit(1)
             ->startCrawling($request->websiteUrl);
 
-        return $this->crawlObserver->getCrawlData();
+        $performanceData = $this->browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
+
+        $performanceData = $performanceData ? json_decode($performanceData, true) : [];
+
+        $crawlData = $this->crawlObserver->getCrawlData();
+
+        $crawlData = $this->crawlDataFactory->parsePerformance($crawlData, $performanceData);
+
+        return $crawlData;
     }
 }

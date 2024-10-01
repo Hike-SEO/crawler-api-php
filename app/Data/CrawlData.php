@@ -12,5 +12,6 @@ class CrawlData extends Data
         public array $h2s,
         public array $h3s,
         public array $p,
+        public ?CrawlDataMetrics $metrics = null,
     ) {}
 }
