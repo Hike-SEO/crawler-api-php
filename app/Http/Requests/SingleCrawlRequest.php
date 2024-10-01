@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\PageEvent;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Support\Validation\ValidationContext;
@@ -18,6 +19,9 @@ class SingleCrawlRequest extends Data
         public bool $performance = true,
     ) {}
 
+    /**
+     * @return array<string, array<string|Enum>>
+     */
     public static function rules(ValidationContext $context): array
     {
         return [
