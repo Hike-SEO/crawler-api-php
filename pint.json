@@ -1,0 +1,9 @@
+{
+    "preset": "laravel",
+    "exclude": [
+        "public"
+    ],
+    "rules": {
+        "phpdoc_align": false
+    }
+}

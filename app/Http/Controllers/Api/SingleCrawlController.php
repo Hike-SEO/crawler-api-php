@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Services\CrawlService;
-use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class SingleCrawlController extends Controller
 {
@@ -13,7 +13,7 @@ class SingleCrawlController extends Controller
         private readonly CrawlService $crawlService,
     ) {}
 
-    public function __invoke(SingleCrawlRequest $request): JsonResponse
+    public function __invoke(SingleCrawlRequest $request): Response
     {
         $data = $this->crawlService->crawlUrl($request);
 
