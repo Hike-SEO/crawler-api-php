@@ -12,7 +12,12 @@ class ExampleTest extends TestCase
      */
     public function test_the_application_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
+        // Added for the sake of the workflow
+        config()->set([
+            'crawler.api_key' => 'secret-key',
+        ]);
+
+        $response = $this->withHeader('x-api-key', 'secret-key')->get('/');
 
         $response->assertStatus(200);
     }
