@@ -2,7 +2,7 @@
 
 namespace App\Observers;
 
-use App\Data\CrawlData;
+use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
@@ -11,7 +11,7 @@ use Spatie\Crawler\CrawlObservers\CrawlObserver as BaseCrawlObserver;
 
 class SimpleCrawlObserver extends BaseCrawlObserver
 {
-    private ?CrawlData $crawlData = null;
+    private ?CrawledPage $crawlData = null;
 
     public function __construct(
         public readonly CrawlDataFactory $crawlDataFactory,
@@ -49,7 +49,7 @@ class SimpleCrawlObserver extends BaseCrawlObserver
         //
     }
 
-    public function getCrawlData(): ?CrawlData
+    public function getCrawlData(): ?CrawledPage
     {
         return $this->crawlData;
     }

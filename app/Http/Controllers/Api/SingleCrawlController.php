@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Data\CrawlData;
+use App\Data\CrawledPage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Services\CrawlService;
@@ -13,7 +13,7 @@ class SingleCrawlController extends Controller
         private readonly CrawlService $crawlService,
     ) {}
 
-    public function __invoke(SingleCrawlRequest $request): CrawlData
+    public function __invoke(SingleCrawlRequest $request): CrawledPage
     {
         return $this->crawlService->singleCrawlUrl($request);
     }

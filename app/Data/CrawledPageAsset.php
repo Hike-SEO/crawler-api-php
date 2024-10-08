@@ -4,7 +4,7 @@ namespace App\Data;
 
 use Spatie\LaravelData\Data;
 
-class CrawlDataAsset extends Data
+class CrawledPageAsset extends Data
 {
     public function __construct(
         public string $name,
