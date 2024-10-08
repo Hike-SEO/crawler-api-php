@@ -24,7 +24,10 @@ class CrawlDataFactory
         ]);
     }
 
-    public function parsePerformance(CrawlData $crawlData, $performance): CrawlData
+    /**
+     * @param array<string, mixed> $performance
+     */
+    public function parsePerformance(CrawlData $crawlData, array $performance): CrawlData
     {
         // TODO
         return $crawlData;

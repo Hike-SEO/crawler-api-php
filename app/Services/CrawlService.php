@@ -37,11 +37,18 @@ class CrawlService
 
         $performanceData = $this->browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
 
+        /** @var array<string, mixed> $performanceData */
         $performanceData = $performanceData ? json_decode($performanceData, true) : [];
 
         $crawlData = $this->crawlObserver->getCrawlData();
 
-        $crawlData = $this->crawlDataFactory->parsePerformance($crawlData, $performanceData);
+        if (! $crawlData) {
+            throw new \Exception("Failed to get crawl data for {$request->websiteUrl}");
+        }
+
+        if ($performanceData) {
+            $crawlData = $this->crawlDataFactory->parsePerformance($crawlData, $performanceData);
+        }
 
         return $crawlData;
     }
