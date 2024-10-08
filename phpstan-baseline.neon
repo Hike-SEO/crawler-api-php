@@ -1,0 +1,16 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method App\\\\Data\\\\CrawlData\\:\\:__construct\\(\\) has parameter \\$p with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: app/Data/CrawlData.php
+
+		-
+			message: "#^Method App\\\\Data\\\\Factories\\\\CrawlDataFactory\\:\\:getInnerHtmls\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: app/Data/Factories/CrawlDataFactory.php
+
+		-
+			message: "#^Parameter \\#1 \\$collection of method App\\\\Data\\\\Factories\\\\CrawlDataFactory\\:\\:getInnerHtmls\\(\\) expects PHPHtmlParser\\\\Dom\\\\Collection, mixed given\\.$#"
+			count: 4
+			path: app/Data/Factories/CrawlDataFactory.php
