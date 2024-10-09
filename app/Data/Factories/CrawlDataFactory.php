@@ -5,6 +5,7 @@ namespace App\Data\Factories;
 use App\Data\CrawledPage;
 use App\Data\CrawledPageImage;
 use App\Data\CrawledPageLink;
+use App\Data\CrawledPageMeta;
 use GuzzleHttp\Psr7\Uri;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -59,6 +60,7 @@ class CrawlDataFactory
             'meta_keywords' => $this->getMetaContent('keywords', $dom),
             'optimiser' => $this->getMetaContent('optimiser', $dom),
             'canonical_link' => $canonicalNode?->getAttribute('href') ?? '',
+            'opengraph_meta' => $this->getOpengraphMetas($dom),
         ]);
     }
 
@@ -68,6 +70,23 @@ class CrawlDataFactory
         $meta = $dom->find('meta[name="'.$metaName.'"]', 0);
 
         return $meta?->getAttribute('content');
+    }
+
+    public function getOpengraphMetas(Dom $dom): Collection
+    {
+        /** @var Dom\Collection<int, HtmlNode> $nodes */
+        $nodes = $dom->find('meta');
+
+        return collect($nodes->toArray())
+            ->filter(fn (HtmlNode $node) => Str::startsWith($node->getAttribute('property') ?? '', 'og:'))
+            ->map(function (HtmlNode $node) {
+
+                return CrawledPageMeta::from([
+                    'property' => $node->getAttribute('property') ?? '',
+                    'content' => $node->getAttribute('content') ?? '',
+                ]);
+            })
+            ->values();
     }
 
     /**

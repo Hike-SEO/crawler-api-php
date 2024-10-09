@@ -18,6 +18,7 @@ class CrawledPage extends Data
         public string $url,
         public ?string $path,
         public ?string $title,
+        public int $word_count,
         public ?string $content,
         /** @var null|DataCollection<int, CrawledPageImage> */
         public ?DataCollection $images,
@@ -38,7 +39,8 @@ class CrawledPage extends Data
         public array $h1_headings = [],
         public array $h2_headings = [],
         public array $h3_headings = [],
-        public int $word_count,
+        /** @var null|DataCollection<int, CrawledPageMeta> */
+        public ?DataCollection $opengraph_meta = null,
         public ?CrawlDataMetrics $metrics = null,
     ) {}
 }
