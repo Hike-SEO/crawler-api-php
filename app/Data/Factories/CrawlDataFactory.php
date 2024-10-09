@@ -4,8 +4,10 @@ namespace App\Data\Factories;
 
 use App\Data\CrawledPage;
 use App\Data\CrawledPageImage;
+use App\Data\CrawledPageLink;
 use GuzzleHttp\Psr7\Uri;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use PHPHtmlParser\Dom;
 use PHPHtmlParser\Dom\HtmlNode;
 use Psr\Http\Message\ResponseInterface;
@@ -41,6 +43,8 @@ class CrawlDataFactory
             'h2_headings' => $this->getInnerHtmls($dom->find('h2')),
             'h3_headings' => $this->getInnerHtmls($dom->find('h3')),
             'images' => $this->getImagesFromDom($dom),
+            'internal_links' => $this->getLinksFromDom($dom, $uri, true),
+            'external_links' => $this->getLinksFromDom($dom, $uri, false),
         ]);
     }
 
@@ -58,6 +62,39 @@ class CrawlDataFactory
                 'alt' => $node->getAttribute('alt'),
             ]);
         });
+    }
+
+    /**
+     * @return Collection<int, CrawledPageLink>
+     *
+     * @throws \PHPHtmlParser\Exceptions\ChildNotFoundException
+     * @throws \PHPHtmlParser\Exceptions\NotLoadedException
+     */
+    public function getLinksFromDom(Dom $dom, Uri $baseUri, bool $shouldMatchHost): Collection
+    {
+        /** @var Dom\Collection<int, HtmlNode> $nodes */
+        $nodes = $dom->find('a');
+
+        return collect($nodes->toArray())
+            ->filter(function (HtmlNode $node) use ($shouldMatchHost, $baseUri) {
+                $href = $node->getAttribute('href');
+                if (! $href || Str::startsWith($href, ['#'])) {
+                    return false;
+                }
+
+                $href = new Uri($href);
+
+                return $shouldMatchHost === ($href->getHost() === $baseUri->getHost() || $href->getHost() === '');
+            })->map(function (HtmlNode $node) {
+                return CrawledPageLink::from([
+                    'url' => $node->getAttribute('href'),
+                    'rel' => $node->getAttribute('rel'),
+                    'anchor' => [
+                        'nodeName' => $node->getTag()->name(),
+                        'content' => $node->text(),
+                    ],
+                ]);
+            })->values();
     }
 
     /**
