@@ -31,6 +31,7 @@ class CrawlService
     public function singleCrawlUrl(SingleCrawlRequest $request): CrawledPage
     {
         $this->browsershot->setUrl($request->websiteUrl);
+        $this->browsershot->setOption('waitUntil', $request->waitUntil);
 
         $this->initCrawler()
             ->setCrawlQueue(new ArrayCrawlQueue)
