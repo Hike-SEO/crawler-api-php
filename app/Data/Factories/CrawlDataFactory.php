@@ -47,6 +47,7 @@ class CrawlDataFactory
             'path' => $path,
             'title' => $titleNode?->innerHtml() ?? '',
             'content' => $content,
+            'word_count' => Str::wordCount($content),
             'h1_headings' => $this->getInnerHtmls($dom->find('h1')),
             'h2_headings' => $this->getInnerHtmls($dom->find('h2')),
             'h3_headings' => $this->getInnerHtmls($dom->find('h3')),
