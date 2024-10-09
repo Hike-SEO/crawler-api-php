@@ -37,12 +37,6 @@ class CrawlService
             ->setTotalCrawlLimit(1)
             ->startCrawling($request->websiteUrl);
 
-        if ($request->performance) {
-            $performanceData = $this->browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
-            /** @var array<string, mixed> $performanceData */
-            $performanceData = $performanceData ? json_decode($performanceData, true) : [];
-        }
-
         $crawledPage = $this->crawlObserver->getCrawlData();
 
         $redirects = collect($this->browsershot->redirectHistory() ?? []);
@@ -80,7 +74,11 @@ class CrawlService
             throw new \Exception("Failed to get crawl data for {$request->websiteUrl}");
         }
 
-        if (isset($performanceData)) {
+        if ($request->performance) {
+            $performanceData = $this->browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
+            /** @var array<string, mixed> $performanceData */
+            $performanceData = $performanceData ? json_decode($performanceData, true) : [];
+
             $crawledPage = $this->crawlDataFactory->parsePerformance($crawledPage, $performanceData);
         }
 
