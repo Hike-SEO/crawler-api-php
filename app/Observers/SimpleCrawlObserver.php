@@ -38,7 +38,12 @@ class SimpleCrawlObserver extends BaseCrawlObserver
         ?UriInterface $foundOnUrl = null,
         ?string $linkText = null,
     ): void {
-        $this->crawlData = $this->crawlDataFactory->fromResponse($url, $requestException->getResponse());
+        $response = $requestException->getResponse();
+        if (! $response) {
+            throw $requestException;
+        }
+
+        $this->crawlData = $this->crawlDataFactory->fromResponse($url, $response);
     }
 
     /**
