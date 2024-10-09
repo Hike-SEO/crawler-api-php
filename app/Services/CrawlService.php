@@ -1,46 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Observers\SimpleCrawlObserver;
-use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\Crawler;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
 class CrawlService
 {
     public function __construct(
+        private Crawler $crawler,
         private readonly SimpleCrawlObserver $crawlObserver,
-        private readonly Browsershot $browsershot,
         private readonly CrawlDataFactory $crawlDataFactory,
-    ) {
-        $this->browsershot->noSandbox();
-    }
-
-    protected function initCrawler(): Crawler
-    {
-        return Crawler::create()
-            ->executeJavaScript()
-            ->setBrowsershot($this->browsershot)
-            ->setCrawlObserver($this->crawlObserver);
-    }
+    ) {}
 
     public function singleCrawlUrl(SingleCrawlRequest $request): CrawledPage
     {
-        $this->browsershot->setUrl($request->websiteUrl);
-        $this->browsershot->setOption('waitUntil', $request->waitUntil);
+        $browsershot = $this->crawler->getBrowsershot();
 
-        $this->initCrawler()
+        $browsershot->setUrl($request->websiteUrl);
+        $browsershot->setOption('waitUntil', $request->waitUntil);
+
+        $this->crawler
+            ->setCrawlObserver($this->crawlObserver)
             ->setCrawlQueue(new ArrayCrawlQueue)
             ->setTotalCrawlLimit(1)
             ->startCrawling($request->websiteUrl);
 
         $crawledPage = $this->crawlObserver->getCrawlData();
 
-        $redirects = collect($this->browsershot->redirectHistory() ?? []);
+        $redirects = collect($browsershot->redirectHistory() ?? []);
 
         // Check if we were redirected
         if ($redirects->count() > 1) {
@@ -76,7 +70,7 @@ class CrawlService
         }
 
         if ($request->performance) {
-            $performanceData = $this->browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
+            $performanceData = $browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
             /** @var array<string, mixed> $performanceData */
             $performanceData = $performanceData ? json_decode($performanceData, true) : [];
 

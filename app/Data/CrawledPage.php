@@ -18,7 +18,7 @@ class CrawledPage extends Data
         public string $url,
         public ?string $path,
         public ?string $title,
-        public int $word_count,
+        public ?int $word_count,
         public ?string $content,
         /** @var null|DataCollection<int, CrawledPageImage> */
         public ?DataCollection $images,
