@@ -33,19 +33,40 @@ class CrawlDataFactory
         /** @var null|HtmlNode $titleNode */
         $titleNode = $dom->find('title', 0);
 
+        // Get all content from <p> tags
+        $content = collect($this->getInnerHtmls($dom->find('p')))
+            ->map(fn (string $content) => rtrim($content, '.'))
+            ->join('. ');
+
+        /** @var null|HtmlNode $canonicalNode */
+        $canonicalNode = $dom->find('link[rel="canonical"]', 0);
+
         return CrawledPage::from([
             'response_code' => $response->getStatusCode(),
             'url' => $uri->__toString(),
             'path' => $path,
             'title' => $titleNode?->innerHtml() ?? '',
-            'content' => collect($this->getInnerHtmls($dom->find('p')))->map('strip_tags')->join('. '),
+            'content' => $content,
             'h1_headings' => $this->getInnerHtmls($dom->find('h1')),
             'h2_headings' => $this->getInnerHtmls($dom->find('h2')),
             'h3_headings' => $this->getInnerHtmls($dom->find('h3')),
             'images' => $this->getImagesFromDom($dom),
             'internal_links' => $this->getLinksFromDom($dom, $uri, true),
             'external_links' => $this->getLinksFromDom($dom, $uri, false),
+            'meta_robots' => $this->getMetaContent('robots', $dom),
+            'meta_desc' => $this->getMetaContent('description', $dom),
+            'meta_keywords' => $this->getMetaContent('keywords', $dom),
+            'optimiser' => $this->getMetaContent('optimiser', $dom),
+            'canonical_link' => $canonicalNode?->getAttribute('href') ?? '',
         ]);
+    }
+
+    public function getMetaContent(string $metaName, Dom $dom): ?string
+    {
+        /** @var null|HtmlNode $meta */
+        $meta = $dom->find('meta[name="'.$metaName.'"]', 0);
+
+        return $meta?->getAttribute('content');
     }
 
     /**
@@ -59,7 +80,7 @@ class CrawlDataFactory
         return collect($nodes->toArray())->map(function (HtmlNode $node) {
             return CrawledPageImage::from([
                 'src' => $node->getAttribute('src'),
-                'alt' => $node->getAttribute('alt'),
+                'alt' => $node->getAttribute('alt') ?: null,
             ]);
         });
     }
