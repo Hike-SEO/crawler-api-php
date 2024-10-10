@@ -36,8 +36,8 @@ class CrawlDataFactory
 
         // Get all content from <p> tags
         $content = collect($this->getInnerHtmls($dom->find('p')))
-            ->map(fn (string $content) => rtrim($content, '.'))
-            ->join('. ');
+            ->map(fn (string $content) => rtrim($content, ' '))
+            ->join(' ');
 
         /** @var null|HtmlNode $canonicalNode */
         $canonicalNode = $dom->find('link[rel="canonical"]', 0);
