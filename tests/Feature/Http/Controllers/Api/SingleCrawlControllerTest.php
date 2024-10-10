@@ -32,7 +32,8 @@ class SingleCrawlControllerTest extends TestCase
             })
             ->andReturn($crawledPage);
 
-        $this->postJson(route('api.crawl.single'), $requestBody)
+        $this->withHeader('x-api-key', config('crawler.api_key'))
+            ->postJson(route('api.crawl.single'), $requestBody)
             ->assertSuccessful()
             ->assertJson($crawledPage->toArray());
     }
