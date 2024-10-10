@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\PageEvent;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Spatie\LaravelData\Attributes\MapInputName;
@@ -15,7 +14,7 @@ class SingleCrawlRequest extends Data
         #[MapInputName('website_url')]
         public string $websiteUrl,
         #[MapInputName('wait_until')]
-        public PageEvent $waitUntil = PageEvent::DOM_CONTENT_LOADED,
+        public string $waitUntil = 'domcontentloaded',
         public bool $performance = true,
     ) {}
 
@@ -31,7 +30,7 @@ class SingleCrawlRequest extends Data
             ],
             'wait_until' => [
                 'nullable',
-                Rule::enum(PageEvent::class),
+                Rule::in(['domcontentloaded', 'load', 'networkidle0', 'networkidle2']),
             ],
             'performance' => [
                 'nullable',
