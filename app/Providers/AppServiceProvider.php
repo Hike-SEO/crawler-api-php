@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Crawler;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Browsershot\Browsershot;
-use Spatie\Crawler\Crawler;
 
 class AppServiceProvider extends ServiceProvider
 {

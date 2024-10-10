@@ -8,13 +8,12 @@ use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Observers\SimpleCrawlObserver;
-use Spatie\Crawler\Crawler;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
 class CrawlService
 {
     public function __construct(
-        private Crawler $crawler,
+        private readonly Crawler $crawler,
         private readonly SimpleCrawlObserver $crawlObserver,
         private readonly CrawlDataFactory $crawlDataFactory,
     ) {}

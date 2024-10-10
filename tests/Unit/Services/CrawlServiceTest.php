@@ -6,13 +6,13 @@ use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Observers\SimpleCrawlObserver;
+use App\Services\Crawler;
 use App\Services\CrawlService;
 use Mockery\MockInterface;
 use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\CrawlObservers\CrawlObserver;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 use Spatie\Crawler\CrawlQueues\CrawlQueue;
-use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
 class CrawlServiceTest extends TestCase
@@ -30,11 +30,36 @@ class CrawlServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->crawlService = app(CrawlService::class);
         $this->browsershot = $this->partialMock(Browsershot::class);
-        $this->crawler = $this->partialMock(Crawler::class);
+        $this->crawler = $this->mock(Crawler::class);
         $this->simpleObserver = $this->partialMock(SimpleCrawlObserver::class);
         $this->crawlDataFactory = $this->partialMock(CrawlDataFactory::class);
+        $this->crawlService = app(CrawlService::class);
+
+        $this->crawler
+            ->expects('getBrowsershot')
+            ->andReturn($this->browsershot);
+    }
+
+    protected function setupSingleCrawl(): void
+    {
+        $this->crawler->expects('setCrawlObserver')
+            ->withArgs(function (CrawlObserver $observer) {
+                $this->assertInstanceOf(SimpleCrawlObserver::class, $observer);
+
+                return true;
+            })->andReturnSelf();
+
+        $this->crawler->expects('setCrawlQueue')
+            ->withArgs(function (CrawlQueue $queue) {
+                $this->assertInstanceOf(ArrayCrawlQueue::class, $queue);
+
+                return true;
+            })->andReturnSelf();
+
+        $this->crawler->expects('setTotalCrawlLimit')
+            ->with(1)
+            ->andReturnSelf();
     }
 
     public function test_single_crawl(): void
@@ -61,25 +86,7 @@ class CrawlServiceTest extends TestCase
         $this->browsershot->shouldNotReceive('evaluate');
         $this->crawlDataFactory->shouldNotReceive('parsePerformance');
 
-        $this->crawler->shouldReceive('setCrawlerObserver')
-            ->withArgs(function (CrawlObserver $crawlObserver) {
-                $this->assertInstanceOf(SimpleCrawlObserver::class, $crawlObserver);
-
-                return true;
-            })
-            ->andReturnSelf();
-
-        $this->crawler->shouldReceive('setCrawlQueue')
-            ->withArgs(function (CrawlQueue $crawlQueue) {
-                $this->assertInstanceOf(ArrayCrawlQueue::class, $crawlQueue);
-
-                return true;
-            })
-            ->andReturnSelf();
-
-        $this->crawler->shouldReceive('setTotalCrawlLimit')
-            ->with(1)
-            ->andReturnSelf();
+        $this->setupSingleCrawl();
 
         $this->crawler->shouldReceive('startCrawling')
             ->with($url);
