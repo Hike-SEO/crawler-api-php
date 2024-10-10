@@ -41,8 +41,14 @@ class CrawlServiceTest extends TestCase
             ->andReturn($this->browsershot);
     }
 
-    protected function setupSingleCrawl(): void
+    protected function setupSingleCrawl(SingleCrawlRequest $request): void
     {
+        $this->browsershot->expects('setUrl')
+            ->with($request->websiteUrl);
+
+        $this->browsershot->expects('setOption')
+            ->with('waitUntil', $request->waitUntil);
+
         $this->crawler->expects('setCrawlObserver')
             ->withArgs(function (CrawlObserver $observer) {
                 $this->assertInstanceOf(SimpleCrawlObserver::class, $observer);
@@ -62,16 +68,19 @@ class CrawlServiceTest extends TestCase
             ->andReturnSelf();
     }
 
+    protected function withoutPerformance(): void
+    {
+        $this->browsershot->shouldNotReceive('evaluate');
+        $this->crawlDataFactory->shouldNotReceive('parsePerformance');
+    }
+
     public function test_single_crawl(): void
     {
         $url = 'https://hikeseo.co/';
         $request = new SingleCrawlRequest($url, performance: false);
 
-        $this->browsershot->expects('setUrl')
-            ->with($url);
-
-        $this->browsershot->expects('setOption')
-            ->with('waitUntil', $request->waitUntil);
+        $this->setupSingleCrawl($request);
+        $this->withoutPerformance();
 
         $crawledPage = CrawledPage::from([
             'url' => $url,
@@ -83,11 +92,6 @@ class CrawlServiceTest extends TestCase
         $this->browsershot->expects('redirectHistory')
             ->andReturn(null);
 
-        $this->browsershot->shouldNotReceive('evaluate');
-        $this->crawlDataFactory->shouldNotReceive('parsePerformance');
-
-        $this->setupSingleCrawl();
-
         $this->crawler->shouldReceive('startCrawling')
             ->with($url);
 
@@ -96,11 +100,80 @@ class CrawlServiceTest extends TestCase
         $this->assertEquals($crawledPage, $result);
     }
 
-    public function test_single_crawl_with_redirects(): void {}
+    public function test_single_crawl_with_redirects(): void
+    {
+        $url = 'https://hikeseo.co/';
+        $redirectUrl = 'https://hikeseo.co/home';
+        $request = new SingleCrawlRequest($url, performance: false);
 
-    public function test_single_crawl_with_performance(): void {}
+        $this->setupSingleCrawl($request);
+        $this->withoutPerformance();
 
-    public function test_single_crawl_failed_response(): void {}
+        $this->simpleObserver->expects('getCrawlData')
+            ->andReturn(null);
 
-    public function test_single_crawl_no_crawl_data(): void {}
+        $redirects = [
+            [
+                'url' => $url,
+                'status' => 301,
+            ],
+            [
+                'url' => $redirectUrl,
+                'status' => 200,
+            ],
+        ];
+
+        $this->browsershot->expects('redirectHistory')
+            ->andReturn($redirects);
+
+        $this->crawler->shouldReceive('startCrawling')
+            ->with($url);
+
+        $redirectPage = CrawledPage::from([
+            'url' => $redirectUrl,
+            'responseCode' => 200,
+        ]);
+
+        $crawlerService = $this->partialMock(CrawlService::class);
+        $crawlerService->expects('singleCrawlUrl')
+            ->withArgs(function (SingleCrawlRequest $redirectRequest) use ($redirectUrl) {
+                return $redirectUrl === $redirectRequest->websiteUrl;
+            })->andReturn($redirectPage);
+
+        $result = $this->crawlService->singleCrawlUrl($request);
+
+        $this->assertEquals($redirectPage, $result);
+        $this->assertEquals(301, $result->response_code);
+        $this->assertEquals($url, $result->redirect_from);
+        $this->assertEquals([$redirectUrl], $result->redirects_to);
+    }
+
+    public function test_single_crawl_with_performance(): void
+    {
+        // TODO https://hikeseo.atlassian.net/browse/CRAW-218
+        $this->markTestIncomplete();
+    }
+
+    public function test_single_crawl_failed(): void
+    {
+        $url = 'https://hikeseo.co/';
+        $request = new SingleCrawlRequest($url, performance: false);
+
+        $this->setupSingleCrawl($request);
+        $this->withoutPerformance();
+
+        $this->simpleObserver->expects('getCrawlData')
+            ->andReturn(null);
+
+        $this->browsershot->expects('redirectHistory')
+            ->andReturn(null);
+
+        $this->crawler->shouldReceive('startCrawling')
+            ->with($url);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Failed to get crawl data for https://hikeseo.co/');
+
+        $this->crawlService->singleCrawlUrl($request);
+    }
 }

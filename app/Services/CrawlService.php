@@ -49,7 +49,7 @@ class CrawlService
             // Crawl the redirected URL instead
             $redirectRequest = clone $request;
             $redirectRequest->websiteUrl = $lastRedirectUrl;
-            $crawledPage = $this->singleCrawlUrl($redirectRequest);
+            $crawledPage = app(self::class)->singleCrawlUrl($redirectRequest);
 
             /** @var int $responseCode */
             $responseCode = data_get($firstRedirect, 'status', $crawledPage->response_code);
