@@ -148,6 +148,40 @@ class CrawlServiceTest extends TestCase
         $this->assertEquals([$redirectUrl], $result->redirects_to);
     }
 
+    public function test_single_crawl_with_redirect_missing_url(): void
+    {
+        $url = 'https://hikeseo.co/';
+        $redirectUrl = 'https://hikeseo.co/home';
+        $request = new SingleCrawlRequest($url, performance: false);
+
+        $this->setupSingleCrawl($request);
+        $this->withoutPerformance();
+
+        $this->simpleObserver->expects('getCrawlData')
+            ->andReturn(null);
+
+        $redirects = [
+            [
+                'url' => $url,
+                'status' => 301,
+            ],
+            [
+                'url' => null,
+                'status' => 200,
+            ],
+        ];
+
+        $this->browsershot->expects('redirectHistory')
+            ->andReturn($redirects);
+
+        $this->crawler->shouldReceive('startCrawling')
+            ->with($url);
+
+        $this->expectExceptionMessage('Failed to determine last redirect url');
+
+        $this->crawlService->singleCrawlUrl($request);
+    }
+
     public function test_single_crawl_with_performance(): void
     {
         // TODO https://hikeseo.atlassian.net/browse/CRAW-218
