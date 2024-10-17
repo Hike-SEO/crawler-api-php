@@ -69,9 +69,9 @@ class CrawlService
         }
 
         if ($request->performance) {
-            $performanceData = $browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
+            $performanceDataJson = $browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
             /** @var array<string, mixed> $performanceData */
-            $performanceData = $performanceData ? json_decode($performanceData, true) : [];
+            $performanceData = $performanceDataJson ? json_decode($performanceDataJson, true) : [];
 
             $crawledPage = $this->crawlDataFactory->parsePerformance($crawledPage, $performanceData);
         }
