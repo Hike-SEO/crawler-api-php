@@ -14,4 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::prefix('websites')->group(function () {
+    Route::post('/', Api\Websites\CreateController::class)->name('api.websites.create');
+});
+
 Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
