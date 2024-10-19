@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\ValidUrl;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Spatie\LaravelData\Attributes\MapInputName;
@@ -19,14 +20,14 @@ class SingleCrawlRequest extends Data
     ) {}
 
     /**
-     * @return array<string, array<string|Enum>>
+     * @return array<string, array<string|Enum|ValidUrl>>
      */
     public static function rules(ValidationContext $context): array
     {
         return [
             'website_url' => [
                 'required',
-                'url',
+                new ValidUrl,
             ],
             'wait_until' => [
                 'nullable',

@@ -13,8 +13,12 @@ class SingleCrawlController extends Controller
         private readonly CrawlService $crawlService,
     ) {}
 
-    public function __invoke(SingleCrawlRequest $request): CrawledPage
+    public function __invoke(SingleCrawlRequest $request): \Illuminate\Http\JsonResponse
     {
-        return $this->crawlService->singleCrawlUrl($request);
+        return response()->json([
+            'data' => [
+                'crawled_page' => $this->crawlService->singleCrawlUrl($request),
+            ],
+        ]);
     }
 }

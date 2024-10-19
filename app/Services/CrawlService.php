@@ -42,7 +42,7 @@ class CrawlService
 
             /** @var string|null $lastRedirectUrl */
             $lastRedirectUrl = data_get($lastRedirect, 'url');
-            if (! $lastRedirectUrl) {
+            if (!$lastRedirectUrl) {
                 throw new \Exception('Failed to determine last redirect url');
             }
 
@@ -64,7 +64,7 @@ class CrawlService
             $crawledPage->redirects_to = $redirectToUrls;
         }
 
-        if (! $crawledPage) {
+        if (!$crawledPage) {
             throw new \Exception("Failed to get crawl data for {$request->websiteUrl}");
         }
 
