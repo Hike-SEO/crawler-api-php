@@ -4,6 +4,7 @@
         "public"
     ],
     "rules": {
-        "phpdoc_align": false
+        "phpdoc_align": false,
+        "not_operator_with_successor_space": false
     }
 }
