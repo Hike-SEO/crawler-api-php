@@ -13,5 +13,12 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::prefix('/crawl')
+    ->name('api.crawl.')
+    ->group(function () {
+        Route::post('single', Api\SingleCrawlController::class)
+            ->name('single');
 
-Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
+        Route::post('/robots', Api\RobotsController::class)
+            ->name('robots');
+    });
