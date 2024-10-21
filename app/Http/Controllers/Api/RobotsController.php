@@ -15,7 +15,10 @@ class RobotsController extends Controller
             .'://'.parse_url($request->websiteUrl, PHP_URL_HOST);
 
         return response()->json([
-            Http::get("{$robotsUrl}/robots.txt")->body(),
+            Http::timeout(3)
+                ->withOptions(['allow_redirects' => ['max' => 2]])
+                ->get("{$robotsUrl}/robots.txt")
+                ->body(),
         ]);
     }
 }
