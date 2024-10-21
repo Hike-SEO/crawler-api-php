@@ -8,12 +8,12 @@ abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
 
-    public function usingTestApiToken(): void
+    public function usingTestApiToken(): static
     {
         config()->set([
             'crawler.api_key' => 'secret-key',
         ]);
 
-        $this->withHeader('x-api-key', 'secret-key');
+        return $this->withHeader('x-api-key', 'secret-key');
     }
 }
