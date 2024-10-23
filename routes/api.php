@@ -14,4 +14,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
+Route::prefix('/crawl')
+    ->name('api.crawl.')
+    ->group(function () {
+        Route::post('single', Api\SingleCrawlController::class)
+            ->name('single');
+
+        Route::post('/sitemap', Api\SitemapController::class)
+            ->name('sitemap');
+    });
