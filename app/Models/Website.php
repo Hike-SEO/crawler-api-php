@@ -6,6 +6,16 @@ use App\Enums\WaitUntil;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property WaitUntil $wait_until
+ *
+ * @method static \Database\Factories\WebsiteFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder|Website newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Website newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Website query()
+ *
+ * @mixin \Eloquent
+ */
 class Website extends Model
 {
     use HasFactory;
