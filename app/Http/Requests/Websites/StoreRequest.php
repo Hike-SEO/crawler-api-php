@@ -62,4 +62,17 @@ class StoreRequest extends Data
             ],
         ];
     }
+
+    public static function fake(): self
+    {
+        return self::from([
+            'url' => fake()->url,
+            'ignore_robots_txt' => fake()->boolean(),
+            'wait_until' => fake()->randomElement(WaitUntil::cases()),
+            'skip_ignore_paths' => fake()->boolean(),
+            'page_timeout' => fake()->numberBetween(500, 3000),
+            'max_concurrent_pages' => fake()->numberBetween(1, 100),
+            'hike_user_agent' => fake()->boolean(),
+        ]);
+    }
 }
