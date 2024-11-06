@@ -53,7 +53,9 @@ class UpdateControllerTest extends TestCase
             'hike_user_agent' => true,
         ];
 
-        $website = Website::factory()->create();
+        $website = Website::factory()->create([
+            'url' => 'https://example.com',
+        ]);
 
         $service = $this->mock(WebsiteService::class);
         $service->expects('updateWebsite')
