@@ -32,7 +32,7 @@ class CreateRequest extends Data
             'url' => [
                 'required',
                 'url',
-                Rule::unique('websites', 'url'),
+                Rule::unique('websites', 'url')->ignore(request('website')),
             ],
             'ignore_robots_txt' => [
                 'sometimes',

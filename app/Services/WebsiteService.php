@@ -14,4 +14,11 @@ class WebsiteService
 
         return $website;
     }
+
+    public function updateWebsite(Website $website, CreateRequest $request): Website
+    {
+        $website->update($request->toArray());
+
+        return $website;
+    }
 }
