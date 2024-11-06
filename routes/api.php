@@ -19,3 +19,4 @@ Route::prefix('websites')->group(function () {
 });
 
 Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
+Route::post('/crawl/full', Api\FullCrawlController::class)->name('api.crawl.full');

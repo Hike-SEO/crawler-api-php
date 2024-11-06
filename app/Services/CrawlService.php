@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\CrawlQueues\FullCrawlQueue;
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\SingleCrawlRequest;
+use App\Jobs\StartFullCrawlJob;
+use App\Models\FullCrawl;
+use App\Models\Website;
+use App\Observers\FullCrawlObserver;
 use App\Observers\SimpleCrawlObserver;
+use Spatie\Crawler\CrawlProfiles\CrawlInternalUrls;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
 class CrawlService
 {
     public function __construct(
         private readonly Crawler $crawler,
-        private readonly SimpleCrawlObserver $crawlObserver,
+        private readonly SimpleCrawlObserver $simpleCrawlObserver,
+        private readonly FullCrawlObserver $fullCrawlObserver,
         private readonly CrawlDataFactory $crawlDataFactory,
     ) {}
 
@@ -26,12 +34,12 @@ class CrawlService
         $browsershot->setOption('waitUntil', $request->waitUntil);
 
         $this->crawler
-            ->setCrawlObserver($this->crawlObserver)
+            ->setCrawlObserver($this->simpleCrawlObserver)
             ->setCrawlQueue(new ArrayCrawlQueue)
             ->setTotalCrawlLimit(1)
             ->startCrawling($request->websiteUrl);
 
-        $crawledPage = $this->crawlObserver->getCrawlData();
+        $crawledPage = $this->simpleCrawlObserver->getCrawlData();
 
         $redirects = collect($browsershot->redirectHistory() ?? []);
 
@@ -77,5 +85,37 @@ class CrawlService
         }
 
         return $crawledPage;
+    }
+
+    public function startFullCrawl(Website $website, FullCrawlRequest $request): FullCrawl
+    {
+        $fullCrawl = FullCrawl::query()
+            ->create([
+                'website_id' => $website->id,
+            ]);
+
+        StartFullCrawlJob::dispatch($fullCrawl, $request);
+
+        return $fullCrawl;
+    }
+
+    public function runFullCrawl(FullCrawl $fullCrawl, FullCrawlRequest $request): FullCrawl
+    {
+        $browsershot = $this->crawler->getBrowsershot();
+        $url = $fullCrawl->website->url;
+        $this->fullCrawlObserver->setFullCrawl($fullCrawl);
+
+        $browsershot->setUrl($url);
+        $browsershot->setOption('waitUntil', $request->waitUntil ?? $website->wait_until);
+
+        $this->crawler
+            ->setCrawlObserver($this->fullCrawlObserver)
+            ->setCrawlProfile(new CrawlInternalUrls($url))
+            ->setCrawlQueue(new FullCrawlQueue($fullCrawl))
+            ->setMaximumDepth(2)
+            ->setTotalCrawlLimit(10)
+            ->startCrawling($url);
+
+        return $fullCrawl;
     }
 }
