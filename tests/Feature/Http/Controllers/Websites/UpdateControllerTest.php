@@ -6,7 +6,7 @@ namespace Tests\Feature\Http\Controllers\Websites;
 
 use App\Enums\WaitUntil;
 use App\Http\Middleware\AuthenticateSecretKey;
-use App\Http\Requests\Websites\CreateRequest;
+use App\Http\Requests\Websites\StoreRequest;
 use App\Models\Website;
 use App\Services\WebsiteService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,7 +57,7 @@ class UpdateControllerTest extends TestCase
 
         $service = $this->mock(WebsiteService::class);
         $service->expects('updateWebsite')
-            ->withArgs(function (Website $websiteArg, CreateRequest $request) use ($website, $data) {
+            ->withArgs(function (Website $websiteArg, StoreRequest $request) use ($website, $data) {
                 $this->assertTrue($website->is($websiteArg));
                 $this->assertEquals($data['url'], $request->url);
                 $this->assertEquals($data['ignore_robots_txt'], $request->ignoreRobotsTxt);

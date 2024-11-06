@@ -17,7 +17,7 @@ class WebsiteService
         return $website;
     }
 
-    public function updateWebsite(Website $website, CreateRequest $request): Website
+    public function updateWebsite(Website $website, StoreRequest $request): Website
     {
         $website->update($request->toArray());
 
