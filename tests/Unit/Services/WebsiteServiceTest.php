@@ -47,4 +47,15 @@ class WebsiteServiceTest extends TestCase
             ...$request->toArray(),
         ]);
     }
+
+    public function test_delete_website(): void
+    {
+        $website = Website::factory()->create();
+
+        $this->service->deleteWebsite($website);
+
+        $this->assertDatabaseMissing(Website::class, [
+            'id' => $website->id,
+        ]);
+    }
 }
