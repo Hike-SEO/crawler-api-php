@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Websites;
 
 use App\Enums\WaitUntil;
@@ -21,6 +23,9 @@ class CreateRequest extends Data
         public bool $hikeUserAgent = false,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function rules(): array
     {
         return [
