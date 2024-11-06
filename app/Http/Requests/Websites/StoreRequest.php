@@ -11,7 +11,7 @@ use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
 #[MapName(SnakeCaseMapper::class)]
-class CreateRequest extends Data
+class StoreRequest extends Data
 {
     public function __construct(
         public string $url,
@@ -32,7 +32,7 @@ class CreateRequest extends Data
             'url' => [
                 'required',
                 'url',
-                Rule::unique('websites', 'url'),
+                Rule::unique('websites', 'url')->ignore(request('website')),
             ],
             'ignore_robots_txt' => [
                 'sometimes',
