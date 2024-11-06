@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * 
- *
  * @property WaitUntil $wait_until
+ *
  * @method static \Database\Factories\WebsiteFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder|Website newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Website newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Website query()
+ *
  * @property int $id
  * @property string $url
  * @property bool $ignore_robots_txt
@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $hike_user_agent
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|Website whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Website whereHikeUserAgent($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Website whereId($value)
@@ -33,6 +34,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Website whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Website whereUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Website whereWaitUntil($value)
+ *
  * @mixin \Eloquent
  */
 class Website extends Model
