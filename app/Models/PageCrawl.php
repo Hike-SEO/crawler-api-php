@@ -14,11 +14,12 @@ class PageCrawl extends Model
         'url',
         'full_crawl_id',
         'data',
-        'finished_at',
+        'error',
+        'crawled_at',
     ];
 
     protected $casts = [
         'data' => CrawledPage::class,
-        'finished_at' => 'datetime',
+        'crawled_at' => 'datetime',
     ];
 }

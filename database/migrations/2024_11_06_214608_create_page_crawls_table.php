@@ -17,8 +17,9 @@ return new class extends Migration
             $table->foreignIdFor(FullCrawl::class);
             $table->text('url');
             $table->json('data')->nullable();
+            $table->longText('error')->nullable();
             $table->timestamps();
-            $table->dateTime('finished_at')->nullable();
+            $table->dateTime('crawled_at')->nullable();
         });
     }
 

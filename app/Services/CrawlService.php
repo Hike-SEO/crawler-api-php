@@ -98,25 +98,4 @@ class CrawlService
 
         return $fullCrawl;
     }
-
-    public function runFullCrawl(FullCrawl $fullCrawl, FullCrawlRequest $request): FullCrawl
-    {
-        $browsershot = $this->crawler->getBrowsershot();
-        $url = $fullCrawl->website->url;
-        $this->fullCrawlObserver->setFullCrawl($fullCrawl);
-
-        $browsershot->setUrl($url);
-        $browsershot->setOption('waitUntil', $request->waitUntil ?? $website->wait_until);
-
-        $this->crawler
-            ->setCrawlObserver($this->fullCrawlObserver)
-            ->setCrawlProfile(new CrawlInternalUrls($url))
-            ->setCrawlQueue(new FullCrawlQueue($fullCrawl))
-            ->setMaximumDepth(2)
-            ->setTotalCrawlLimit(10)
-            ->setDelayBetweenRequests(2500)
-            ->startCrawling($url);
-
-        return $fullCrawl;
-    }
 }

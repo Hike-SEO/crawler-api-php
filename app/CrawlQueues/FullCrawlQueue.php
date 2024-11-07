@@ -37,7 +37,7 @@ class FullCrawlQueue implements CrawlQueue
     {
         return PageCrawl::query()
             ->where('full_crawl_id', $this->fullCrawl->id)
-            ->whereNull('finished_at')
+            ->whereNull('crawled_at')
             ->exists();
     }
 
@@ -52,7 +52,7 @@ class FullCrawlQueue implements CrawlQueue
     {
         $pageCrawl = PageCrawl::query()
             ->where('full_crawl_id', $this->fullCrawl->id)
-            ->whereNull('finished_at')
+            ->whereNull('crawled_at')
             ->first();
 
         if (! $pageCrawl) {
@@ -64,7 +64,7 @@ class FullCrawlQueue implements CrawlQueue
 
     public function hasAlreadyBeenProcessed(CrawlUrl $url): bool
     {
-        return $this->getPageCrawl($url)?->finished_at !== null;
+        return $this->getPageCrawl($url)?->crawled_at !== null;
     }
 
     public function markAsProcessed(CrawlUrl $crawlUrl): void
@@ -75,14 +75,14 @@ class FullCrawlQueue implements CrawlQueue
         }
 
         $pageCrawl->refresh()->update([
-            'finished_at' => now(),
+            'crawled_at' => now(),
         ]);
     }
 
     public function getProcessedUrlCount(): int
     {
         return $this->fullCrawl->pageCrawls()
-            ->whereNotNull('finished_at')
+            ->whereNotNull('crawled_at')
             ->count();
     }
 

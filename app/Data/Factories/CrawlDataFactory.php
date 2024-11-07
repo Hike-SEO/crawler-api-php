@@ -127,8 +127,11 @@ class CrawlDataFactory
 
                 return $shouldMatchHost === ($href->getHost() === $baseUri->getHost() || $href->getHost() === '');
             })->map(function (HtmlNode $node) {
+                $href = $node->getAttribute('href');
+                $href = new Uri($href);
+
                 return CrawledPageLink::from([
-                    'url' => $node->getAttribute('href'),
+                    'url' => $href->__toString(),
                     'rel' => $node->getAttribute('rel'),
                     'anchor' => [
                         'nodeName' => $node->getTag()->name(),

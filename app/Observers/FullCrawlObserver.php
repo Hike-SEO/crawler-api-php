@@ -4,7 +4,9 @@ namespace App\Observers;
 
 use App\Data\Factories\CrawlDataFactory;
 use App\Models\FullCrawl;
+use App\Models\PageCrawl;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Spatie\Crawler\CrawlObservers\CrawlObserver as BaseCrawlObserver;
@@ -45,7 +47,13 @@ class FullCrawlObserver extends BaseCrawlObserver
     ): void {
         $response = $requestException->getResponse();
         if (! $response) {
-            throw $requestException;
+            Log::error($requestException);
+            $this->getPageCrawlFromUrl($url)?->update([
+                'error' => $requestException->getMessage(),
+                'finished_at' => now(),
+            ]);
+
+            return;
         }
 
         $this->updateCrawledPage($url, $response);
@@ -65,14 +73,19 @@ class FullCrawlObserver extends BaseCrawlObserver
     {
         $crawlData = $this->crawlDataFactory->fromResponse($url, $response);
 
-        $pageCrawl = $this->fullCrawl
-            ->pageCrawls()
-            ->where('url', $url->__toString())
-            ->first();
+        $pageCrawl = $this->getPageCrawlFromUrl($url);
 
         $pageCrawl?->update([
             'data' => $crawlData,
             'finished_at' => now(),
         ]);
+    }
+
+    public function getPageCrawlFromUrl(UriInterface $url): ?PageCrawl
+    {
+        return $this->fullCrawl
+            ->pageCrawls()
+            ->where('url', $url->__toString())
+            ->first();
     }
 }

@@ -4,9 +4,7 @@ namespace App\Jobs;
 
 use App\Http\Requests\FullCrawlRequest;
 use App\Models\FullCrawl;
-use App\Services\CrawlService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -22,15 +20,13 @@ class StartFullCrawlJob implements ShouldQueue
     public function __construct(
         public FullCrawl $fullCrawl,
         public FullCrawlRequest $crawlRequest,
-    ) {
-
-    }
+    ) {}
 
     /**
      * Execute the job.
      */
-    public function handle(CrawlService $crawlService): void
+    public function handle(): void
     {
-        $crawlService->runFullCrawl($this->fullCrawl, $this->crawlRequest);
+        CrawlPageJob::dispatch($this->fullCrawl->website->url, $this->fullCrawl, $this->crawlRequest);
     }
 }
