@@ -12,7 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class StartFullCrawlJob implements ShouldBeUnique, ShouldQueue
+class StartFullCrawlJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -23,7 +23,7 @@ class StartFullCrawlJob implements ShouldBeUnique, ShouldQueue
         public FullCrawl $fullCrawl,
         public FullCrawlRequest $crawlRequest,
     ) {
-        //
+
     }
 
     /**
@@ -32,10 +32,5 @@ class StartFullCrawlJob implements ShouldBeUnique, ShouldQueue
     public function handle(CrawlService $crawlService): void
     {
         $crawlService->runFullCrawl($this->fullCrawl, $this->crawlRequest);
-    }
-
-    public function uniqueId(): string
-    {
-        return "{$this->fullCrawl->website_id}";
     }
 }

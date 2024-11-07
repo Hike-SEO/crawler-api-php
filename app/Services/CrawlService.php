@@ -114,6 +114,7 @@ class CrawlService
             ->setCrawlQueue(new FullCrawlQueue($fullCrawl))
             ->setMaximumDepth(2)
             ->setTotalCrawlLimit(10)
+            ->setDelayBetweenRequests(2500)
             ->startCrawling($url);
 
         return $fullCrawl;
