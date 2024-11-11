@@ -21,6 +21,8 @@ class CrawlPageJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $tries = 1;
+
     /**
      * Create a new job instance.
      */
@@ -29,8 +31,7 @@ class CrawlPageJob implements ShouldQueue, ShouldBeUnique
         public FullCrawl        $fullCrawl,
         public FullCrawlRequest $crawlRequest,
     )
-    {
-    }
+    {}
 
     /**
      * Execute the job.
@@ -72,10 +73,10 @@ class CrawlPageJob implements ShouldQueue, ShouldBeUnique
 
     public function uniqueId(): string
     {
-        return $this->url;
+        return $this->fullCrawl->id.'_'.$this->url;
     }
 
-    public function fail($exception = null)
+    public function failed($exception = null): void
     {
         $this->getPageCrawl()
             ->update([
