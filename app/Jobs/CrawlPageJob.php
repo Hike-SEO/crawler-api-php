@@ -17,7 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
-class CrawlPageJob implements ShouldQueue, ShouldBeUnique
+class CrawlPageJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -27,18 +27,17 @@ class CrawlPageJob implements ShouldQueue, ShouldBeUnique
      * Create a new job instance.
      */
     public function __construct(
-        public string           $url,
-        public FullCrawl        $fullCrawl,
+        public string $url,
+        public FullCrawl $fullCrawl,
         public FullCrawlRequest $crawlRequest,
-    )
-    {}
+    ) {}
 
     /**
      * Execute the job.
      */
     public function handle(CrawlService $crawlService): void
     {
-        if (!$this->isUrlCrawlable()) {
+        if (! $this->isUrlCrawlable()) {
             throw new \Exception("Cannot crawl {$this->url}");
         }
 
@@ -100,11 +99,12 @@ class CrawlPageJob implements ShouldQueue, ShouldBeUnique
     {
         $url = new Uri($this->url);
 
-        if (!Str::contains($url->getPath(), '.')) {
+        if (! Str::contains($url->getPath(), '.')) {
             return true;
         }
 
         $type = Str::of($url->getPath())->afterLast('.');
+
         return in_array($type, [
             '',
             '/',

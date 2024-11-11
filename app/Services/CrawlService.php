@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\CrawlQueues\FullCrawlQueue;
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\FullCrawlRequest;
@@ -14,7 +13,6 @@ use App\Models\FullCrawl;
 use App\Models\Website;
 use App\Observers\FullCrawlObserver;
 use App\Observers\SimpleCrawlObserver;
-use Spatie\Crawler\CrawlProfiles\CrawlInternalUrls;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
 class CrawlService

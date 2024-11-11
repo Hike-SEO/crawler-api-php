@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignIdFor(Website::class);
             $table->timestamps();
             $table->dateTime('finished_at')->nullable();
+            $table->text('file_path')->nullable();
         });
     }
 

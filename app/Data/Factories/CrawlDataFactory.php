@@ -98,13 +98,13 @@ class CrawlDataFactory
         $nodes = $dom->find('img');
 
         return collect($nodes->toArray())
-            ->filter(fn(HtmlNode $node) => $node->getAttribute('src') !== null)
+            ->filter(fn (HtmlNode $node) => $node->getAttribute('src') !== null)
             ->map(function (HtmlNode $node) {
-            return CrawledPageImage::from([
-                'src' => $node->getAttribute('src'),
-                'alt' => $node->getAttribute('alt') ?: null,
-            ]);
-        });
+                return CrawledPageImage::from([
+                    'src' => $node->getAttribute('src'),
+                    'alt' => $node->getAttribute('alt') ?: null,
+                ]);
+            });
     }
 
     /**

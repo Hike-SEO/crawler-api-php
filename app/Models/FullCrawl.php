@@ -14,6 +14,7 @@ class FullCrawl extends Model
     protected $fillable = [
         'website_id',
         'finished_at',
+        'file_path',
     ];
 
     protected $casts = [
