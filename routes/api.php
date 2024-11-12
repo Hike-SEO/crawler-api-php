@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('websites')->group(function () {
+    Route::get('/', Api\Websites\IndexController::class)->name('api.websites.index');
     Route::post('/', Api\Websites\CreateController::class)->name('api.websites.create');
     Route::put('/{website}', Api\Websites\UpdateController::class)->name('api.websites.update');
     Route::delete('/{website}', Api\Websites\DeleteController::class)->name('api.websites.delete');
