@@ -13,6 +13,7 @@ class FullCrawlRequest extends Data
     public function __construct(
         #[MapInputName('website_id')]
         public int $websiteId,
+        #[MapInputName('crawl_limit')]
         public ?int $crawlLimit = null,
         #[MapInputName('wait_until')]
         public string $waitUntil = 'domcontentloaded',
