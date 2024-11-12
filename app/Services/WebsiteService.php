@@ -23,4 +23,9 @@ class WebsiteService
 
         return $website;
     }
+
+    public function deleteWebsite(Website $website): void
+    {
+        $website->delete();
+    }
 }
