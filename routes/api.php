@@ -19,6 +19,6 @@ Route::prefix('/crawl')
         Route::post('single', Api\SingleCrawlController::class)
             ->name('single');
 
-        Route::post('/robots', Api\RobotsController::class)
+        Route::post('robots', Api\RobotsController::class)
             ->name('robots');
     });
