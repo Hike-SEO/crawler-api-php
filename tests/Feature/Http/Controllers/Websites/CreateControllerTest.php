@@ -29,6 +29,7 @@ class CreateControllerTest extends TestCase
         Website::factory()->create([
             'url' => 'https://example.com',
         ]);
+
         $this
             ->withoutMiddleware([AuthenticateSecretKey::class])
             ->postJson(route('api.websites.create'), $input)
