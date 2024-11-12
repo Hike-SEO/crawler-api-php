@@ -11,7 +11,6 @@ use App\Http\Requests\SingleCrawlRequest;
 use App\Jobs\StartFullCrawlJob;
 use App\Models\FullCrawl;
 use App\Models\Website;
-use App\Observers\FullCrawlObserver;
 use App\Observers\SimpleCrawlObserver;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
@@ -20,7 +19,6 @@ class CrawlService
     public function __construct(
         private readonly Crawler $crawler,
         private readonly SimpleCrawlObserver $simpleCrawlObserver,
-        private readonly FullCrawlObserver $fullCrawlObserver,
         private readonly CrawlDataFactory $crawlDataFactory,
     ) {}
 

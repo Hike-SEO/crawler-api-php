@@ -21,7 +21,7 @@ class CrawlPageJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $tries = 1;
+    public int $tries = 1;
 
     /**
      * Create a new job instance.
@@ -62,6 +62,10 @@ class CrawlPageJob implements ShouldBeUnique, ShouldQueue
             'crawled_at' => now(),
         ]);
 
+        if (! $crawledPageData->internal_links) {
+            return;
+        }
+
         $crawledPageData->internal_links
             ->toCollection()
             ->collect()
@@ -75,11 +79,11 @@ class CrawlPageJob implements ShouldBeUnique, ShouldQueue
         return $this->fullCrawl->id.'_'.$this->url;
     }
 
-    public function failed($exception = null): void
+    public function failed(?\Throwable $exception = null): void
     {
         $this->getPageCrawl()
             ->update([
-                'error' => $exception->getMessage(),
+                'error' => $exception?->getMessage() ?? 'Unknown error',
                 'crawled_at' => now(),
             ]);
     }

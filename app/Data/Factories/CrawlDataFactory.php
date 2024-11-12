@@ -129,8 +129,11 @@ class CrawlDataFactory
 
                 return $shouldMatchHost === ($href->getHost() === $baseUri->getHost() || $href->getHost() === '');
             })->map(function (HtmlNode $node) use ($baseUri) {
+
+                /** @var string $href */
                 $href = $node->getAttribute('href');
                 $href = new Uri($href);
+
                 // Fix relative URLs
                 if ($href->getHost() === '') {
                     $href = $href->withHost($baseUri->getHost());

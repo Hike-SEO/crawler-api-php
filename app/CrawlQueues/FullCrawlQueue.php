@@ -41,8 +41,12 @@ class FullCrawlQueue implements CrawlQueue
             ->exists();
     }
 
+    /**
+     * @param mixed $id
+     */
     public function getUrlById($id): CrawlUrl
     {
+        /** @var PageCrawl $pageCrawl */
         $pageCrawl = PageCrawl::query()->findOrFail($id);
 
         return $this->pageCrawlToCrawlUrl($pageCrawl);
@@ -50,6 +54,7 @@ class FullCrawlQueue implements CrawlQueue
 
     public function getPendingUrl(): ?CrawlUrl
     {
+        /** @var ?PageCrawl $pageCrawl */
         $pageCrawl = PageCrawl::query()
             ->where('full_crawl_id', $this->fullCrawl->id)
             ->whereNull('crawled_at')

@@ -6,12 +6,15 @@ use App\Models\FullCrawl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin FullCrawl
+ */
 class FullCrawlResource extends JsonResource
 {
     /**
-     * @mixin FullCrawl
+     * @return array<string, mixed>
      */
-    public function toArray(Request $request)
+    public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
