@@ -43,4 +43,11 @@ class CrawledPage extends Data
         public ?DataCollection $opengraph_meta = null,
         public ?CrawlDataMetrics $metrics = null,
     ) {}
+
+    public static function fake(): self
+    {
+        return self::from([
+            'url' => fake()->url,
+        ]);
+    }
 }

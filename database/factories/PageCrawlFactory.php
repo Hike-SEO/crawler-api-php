@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\FullCrawl;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,8 @@ class PageCrawlFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'url' => fake()->url,
+            'full_crawl_id' => FullCrawl::factory(),
         ];
     }
 }
