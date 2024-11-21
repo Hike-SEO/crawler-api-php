@@ -33,6 +33,7 @@ class CrawlService
             ->setCrawlObserver($this->simpleCrawlObserver)
             ->setCrawlQueue(new ArrayCrawlQueue)
             ->setTotalCrawlLimit(1)
+            ->ignoreRobots()
             ->startCrawling($request->websiteUrl);
 
         $crawledPage = $this->simpleCrawlObserver->getCrawlData();
