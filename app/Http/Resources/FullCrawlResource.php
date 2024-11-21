@@ -19,7 +19,6 @@ class FullCrawlResource extends JsonResource
         return [
             'id' => $this->id,
             'website' => WebsiteResource::make($this->website),
-            'pages' => $this->pageCrawls,
         ];
     }
 }
