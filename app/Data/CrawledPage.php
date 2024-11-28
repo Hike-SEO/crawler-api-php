@@ -44,10 +44,14 @@ class CrawledPage extends Data
         public ?CrawlDataMetrics $metrics = null,
     ) {}
 
-    public static function fake(): self
+    /**
+     * @param array<string, mixed> $state
+     */
+    public static function fake(array $state = []): self
     {
         return self::from([
             'url' => fake()->url,
+            ...$state,
         ]);
     }
 }
