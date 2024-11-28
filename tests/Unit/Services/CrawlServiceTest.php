@@ -4,10 +4,15 @@ namespace Tests\Unit\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\SingleCrawlRequest;
+use App\Jobs\StartFullCrawlJob;
+use App\Models\FullCrawl;
+use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
 use App\Services\Crawler;
 use App\Services\CrawlService;
+use Illuminate\Support\Facades\Bus;
 use Mockery\MockInterface;
 use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\CrawlObservers\CrawlObserver;
@@ -35,10 +40,6 @@ class CrawlServiceTest extends TestCase
         $this->simpleObserver = $this->partialMock(SimpleCrawlObserver::class);
         $this->crawlDataFactory = $this->partialMock(CrawlDataFactory::class);
         $this->crawlService = app(CrawlService::class);
-
-        $this->crawler
-            ->expects('getBrowsershot')
-            ->andReturn($this->browsershot);
     }
 
     protected function setupSingleCrawl(SingleCrawlRequest $request): void
@@ -48,6 +49,10 @@ class CrawlServiceTest extends TestCase
 
         $this->browsershot->expects('setOption')
             ->with('waitUntil', $request->waitUntil);
+
+        $this->crawler
+            ->expects('getBrowsershot')
+            ->andReturn($this->browsershot);
 
         $this->crawler->expects('setCrawlObserver')
             ->withArgs(function (CrawlObserver $observer) {
@@ -65,6 +70,9 @@ class CrawlServiceTest extends TestCase
 
         $this->crawler->expects('setTotalCrawlLimit')
             ->with(1)
+            ->andReturnSelf();
+
+        $this->crawler->expects('ignoreRobots')
             ->andReturnSelf();
     }
 
@@ -209,5 +217,26 @@ class CrawlServiceTest extends TestCase
         $this->expectExceptionMessage('Failed to get crawl data for https://hikeseo.co/');
 
         $this->crawlService->singleCrawlUrl($request);
+    }
+
+    public function test_start_full_crawl(): void
+    {
+        Bus::fake();
+
+        $website = Website::factory()->create();
+        $request = FullCrawlRequest::from([
+            'websiteId' => $website->id,
+        ]);
+
+        $result = $this->crawlService->startFullCrawl($website, $request);
+
+        Bus::assertDispatched(StartFullCrawlJob::class, function (StartFullCrawlJob $job) use ($website, $request) {
+            $this->assertEquals($request->toArray(), $job->crawlRequest->toArray());
+            $this->assertEquals($website->id, $job->fullCrawl->website_id);
+
+            return true;
+        });
+
+        $this->assertInstanceOf(FullCrawl::class, $result);
     }
 }
