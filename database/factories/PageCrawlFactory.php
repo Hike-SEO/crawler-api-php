@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Data\CrawledPage;
 use App\Models\FullCrawl;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,5 +22,12 @@ class PageCrawlFactory extends Factory
             'url' => fake()->url,
             'full_crawl_id' => FullCrawl::factory(),
         ];
+    }
+
+    public function withData(?CrawledPage $data = null): static
+    {
+        return $this->state([
+            'data' => $data ?? CrawledPage::fake(),
+        ]);
     }
 }
