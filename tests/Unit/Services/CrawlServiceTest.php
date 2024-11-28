@@ -6,7 +6,7 @@ use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\SingleCrawlRequest;
-use App\Jobs\StartFullCrawlJob;
+use App\Jobs\CrawlPageJob;
 use App\Models\FullCrawl;
 use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
@@ -230,7 +230,8 @@ class CrawlServiceTest extends TestCase
 
         $result = $this->crawlService->startFullCrawl($website, $request);
 
-        Bus::assertDispatched(StartFullCrawlJob::class, function (StartFullCrawlJob $job) use ($website, $request) {
+        Bus::assertDispatched(CrawlPageJob::class, function (CrawlPageJob $job) use ($website, $request) {
+            $this->assertEquals($website->url, $job->url);
             $this->assertEquals($request->toArray(), $job->crawlRequest->toArray());
             $this->assertEquals($website->id, $job->fullCrawl->website_id);
 

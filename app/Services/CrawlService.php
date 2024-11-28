@@ -8,7 +8,7 @@ use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\SingleCrawlRequest;
-use App\Jobs\StartFullCrawlJob;
+use App\Jobs\CrawlPageJob;
 use App\Models\FullCrawl;
 use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
@@ -91,7 +91,7 @@ class CrawlService
                 'website_id' => $website->id,
             ]);
 
-        StartFullCrawlJob::dispatch($fullCrawl, $request);
+        CrawlPageJob::dispatch($fullCrawl->website->url, $fullCrawl, $request);
 
         return $fullCrawl;
     }
