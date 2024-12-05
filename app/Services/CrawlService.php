@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
+use App\Http\Requests\PdfRequest;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Observers\SimpleCrawlObserver;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
@@ -77,5 +78,14 @@ class CrawlService
         }
 
         return $crawledPage;
+    }
+
+    public function getPdf(PdfRequest $request): string
+    {
+        return $this->crawler->getBrowsershot()
+            ->setUrl($request->websiteUrl)
+            ->setOption('waitUntil', $request->waitUntil)
+            ->format('A4')
+            ->pdf();
     }
 }

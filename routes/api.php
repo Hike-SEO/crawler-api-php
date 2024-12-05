@@ -15,3 +15,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
+
+Route::post('/capture/pdf', Api\PdfController::class)->name('api.capture.pdf');
