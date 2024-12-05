@@ -5,10 +5,13 @@ namespace Tests\Unit\Models;
 use App\Models\FullCrawl;
 use App\Models\PageCrawl;
 use App\Models\Website;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FullCrawlTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_has_website(): void
     {
         $website = Website::factory()->create();

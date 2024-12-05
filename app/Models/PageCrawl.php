@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Data\CrawledPage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -47,4 +48,9 @@ class PageCrawl extends Model
         'data' => CrawledPage::class,
         'crawled_at' => 'datetime',
     ];
+
+    public function fullCrawl(): BelongsTo
+    {
+        return $this->belongsTo(FullCrawl::class);
+    }
 }
