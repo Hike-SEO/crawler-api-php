@@ -6,7 +6,11 @@ namespace App\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\SingleCrawlRequest;
+use App\Jobs\CrawlPageJob;
+use App\Models\FullCrawl;
+use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
@@ -14,7 +18,7 @@ class CrawlService
 {
     public function __construct(
         private readonly Crawler $crawler,
-        private readonly SimpleCrawlObserver $crawlObserver,
+        private readonly SimpleCrawlObserver $simpleCrawlObserver,
         private readonly CrawlDataFactory $crawlDataFactory,
     ) {}
 
@@ -26,12 +30,13 @@ class CrawlService
         $browsershot->setOption('waitUntil', $request->waitUntil);
 
         $this->crawler
-            ->setCrawlObserver($this->crawlObserver)
+            ->setCrawlObserver($this->simpleCrawlObserver)
             ->setCrawlQueue(new ArrayCrawlQueue)
             ->setTotalCrawlLimit(1)
+            ->ignoreRobots()
             ->startCrawling($request->websiteUrl);
 
-        $crawledPage = $this->crawlObserver->getCrawlData();
+        $crawledPage = $this->simpleCrawlObserver->getCrawlData();
 
         $redirects = collect($browsershot->redirectHistory() ?? []);
 
@@ -77,5 +82,17 @@ class CrawlService
         }
 
         return $crawledPage;
+    }
+
+    public function startFullCrawl(Website $website, FullCrawlRequest $request): FullCrawl
+    {
+        $fullCrawl = FullCrawl::query()
+            ->create([
+                'website_id' => $website->id,
+            ]);
+
+        CrawlPageJob::dispatch($fullCrawl->website->url, $fullCrawl, $request);
+
+        return $fullCrawl;
     }
 }

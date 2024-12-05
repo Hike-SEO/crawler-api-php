@@ -36,9 +36,19 @@ class CrawlDataFactoryTest extends TestCase
         $this->assertEquals('DIY SEO done easy.', $result->meta_desc);
         $this->assertEquals('index, follow', $result->meta_robots);
         $this->assertEquals('diy, seo', $result->meta_keywords);
+
         $this->assertEquals(['Hike SEO', 'Another title'], $result->h1_headings);
         $this->assertEquals(['Subtitle'], $result->h2_headings);
         $this->assertEquals(['Smaller title'], $result->h3_headings);
+
+        $this->assertEquals([
+            'https://hikeseo.co/about',
+            'https://hikeseo.co/meet-the-team',
+        ], collect($result->internal_links)->pluck('url')->all());
+
+        $this->assertEquals([
+            'https://facebook.com',
+        ], collect($result->external_links)->pluck('url')->all());
         // TODO check other properties
     }
 }
