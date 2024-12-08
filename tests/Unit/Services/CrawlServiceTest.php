@@ -247,7 +247,8 @@ class CrawlServiceTest extends TestCase
 
     public function test_screenshot(): void
     {
-        Storage::fake(config('capture.storage.disk'));
+        $disk = config('capture.storage.disk');
+        Storage::fake($disk);
 
         config(['capture.storage.screenshot_path' => 'screenshots']);
 
@@ -278,6 +279,6 @@ class CrawlServiceTest extends TestCase
 
         $filePath = rtrim($result->path, '/').'/'.$result->filename;
 
-        Storage::assertExists($filePath);
+        Storage::disk($disk)->assertExists($filePath);
     }
 }
