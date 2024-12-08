@@ -85,7 +85,9 @@ class CrawlService
         return $this->crawler->getBrowsershot()
             ->setUrl($request->websiteUrl)
             ->setOption('waitUntil', $request->waitUntil)
-            ->format('A4')
+            ->format($request->format->value)
+            ->landscape($request->landscape)
+            ->emulateMedia($request->media->value)
             ->pdf();
     }
 }

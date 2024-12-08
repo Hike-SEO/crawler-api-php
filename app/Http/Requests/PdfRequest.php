@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PDFFormat;
+use App\Enums\PDFMedia;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Spatie\LaravelData\Attributes\MapInputName;
@@ -15,6 +17,9 @@ class PdfRequest extends Data
         public string $websiteUrl,
         #[MapInputName('wait_until')]
         public string $waitUntil = 'domcontentloaded',
+        public PDFFormat $format = PDFFormat::A4,
+        public PDFMedia $media = PDFMedia::Print,
+        public bool $landscape = false,
     ) {}
 
     /**
@@ -30,6 +35,18 @@ class PdfRequest extends Data
             'wait_until' => [
                 'nullable',
                 Rule::in(['domcontentloaded', 'load', 'networkidle0', 'networkidle2']),
+            ],
+            'format' => [
+                'nullable',
+                Rule::enum(PDFFormat::class),
+            ],
+            'media' => [
+                'nullable',
+                Rule::enum(PDFMedia::class),
+            ],
+            'landscape' => [
+                'nullable',
+                'boolean',
             ],
         ];
     }
