@@ -39,7 +39,7 @@ class SimpleCrawlObserver extends BaseCrawlObserver
         ?string $linkText = null,
     ): void {
         $response = $requestException->getResponse();
-        if (! $response) {
+        if (!$response) {
             throw $requestException;
         }
 
