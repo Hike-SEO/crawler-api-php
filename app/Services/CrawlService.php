@@ -6,8 +6,14 @@ namespace App\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
+use App\Data\ScreenshotResult;
+use App\Enums\ScreenshotViewport;
+use App\Http\Requests\PdfRequest;
+use App\Http\Requests\ScreenshotRequest;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Observers\SimpleCrawlObserver;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
 class CrawlService
@@ -77,5 +83,52 @@ class CrawlService
         }
 
         return $crawledPage;
+    }
+
+    public function getPdf(PdfRequest $request): string
+    {
+        return $this->crawler->getBrowsershot()
+            ->setUrl($request->websiteUrl)
+            ->setOption('waitUntil', $request->waitUntil)
+            ->format($request->format->value)
+            ->landscape($request->landscape)
+            ->emulateMedia($request->media->value)
+            ->pdf();
+    }
+
+    public function getScreenshot(ScreenshotRequest $request): ScreenshotResult
+    {
+        [$width, $height] = match ($request->viewport) {
+            ScreenshotViewport::Mobile => [414, 895],
+            default => [1920, 1080],
+        };
+
+        /** @var string $disk */
+        $disk = config('capture.storage.disk');
+
+        /** @var string $path */
+        $path = config('capture.storage.screenshot_path');
+
+        $filename = Str::ulid().'.png';
+
+        $imageContents = $this->crawler->getBrowsershot()
+            ->setUrl($request->websiteUrl)
+            ->setOption('waitUntil', $request->waitUntil)
+            ->windowSize($width, $height)
+            ->screenshot();
+
+        $storage = Storage::disk($disk);
+        if (! $storage->directoryExists($path)) {
+            $storage->makeDirectory($path);
+        }
+
+        $fullPath = rtrim($path, '/').'/'.$filename;
+
+        $storage->put($fullPath, $imageContents);
+
+        return ScreenshotResult::from([
+            'path' => $path,
+            'filename' => $filename,
+        ]);
     }
 }
