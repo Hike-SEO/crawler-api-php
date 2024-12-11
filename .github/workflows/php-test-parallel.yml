@@ -1,0 +1,77 @@
+name: HikeSEO | PHP Testing - Parallel
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  phpunit-parallel:
+    name: PHPUnit (PHP 8.3)
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: crawler_api_testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, json, mysql, pdo_mysql, xdebug
+          coverage: xdebug
+        env:
+          GITHUB_TOKEN: ${{ secrets.COMPOSER_GITHUB_TOKEN }}
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Create .env file
+        run: cp .env.example .env
+
+      - name: Set up MySQL
+        run: |
+          sudo systemctl start mysql
+          sudo mysql -uroot -p'root' -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';"
+          sudo mysql -uroot -p'root' -e 'FLUSH PRIVILEGES;'
+          sudo mysql -uroot -p'root' -e 'CREATE DATABASE IF NOT EXISTS crawler_api_testing;'
+
+      - name: Generate APP_KEY
+        run: php artisan key:generate
+
+      - name: Set up database connection
+        run: |
+          php artisan config:clear
+          php artisan migrate --force
+
+      - name: Run Tests
+        run: php artisan test --parallel --coverage-clover coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml

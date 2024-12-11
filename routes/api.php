@@ -13,13 +13,12 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::prefix('websites')->group(function () {
+    Route::get('/', Api\Websites\IndexController::class)->name('api.websites.index');
+    Route::post('/', Api\Websites\CreateController::class)->name('api.websites.create');
+    Route::put('/{website}', Api\Websites\UpdateController::class)->name('api.websites.update');
+    Route::delete('/{website}', Api\Websites\DeleteController::class)->name('api.websites.delete');
+});
 
-Route::prefix('/crawl')
-    ->name('api.crawl.')
-    ->group(function () {
-        Route::post('single', Api\SingleCrawlController::class)
-            ->name('single');
-
-        Route::post('/sitemap', Api\SitemapController::class)
-            ->name('sitemap');
-    });
+Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
+Route::post('/crawl/sitemap', Api\SitemapController::class)->name('api.crawl.sitemap');

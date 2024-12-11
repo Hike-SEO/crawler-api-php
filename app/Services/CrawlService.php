@@ -1,47 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
-use App\Data\CrawlData;
+use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\SingleCrawlRequest;
-use HeadlessChromium\BrowserFactory;
+use App\Observers\SimpleCrawlObserver;
+use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 
 class CrawlService
 {
     public function __construct(
+        private readonly Crawler $crawler,
+        private readonly SimpleCrawlObserver $crawlObserver,
         private readonly CrawlDataFactory $crawlDataFactory,
     ) {}
 
-    public function crawlUrl(SingleCrawlRequest $request): CrawlData
+    public function singleCrawlUrl(SingleCrawlRequest $request): CrawledPage
     {
-        $browserFactory = new BrowserFactory('google-chrome-stable');
+        $browsershot = $this->crawler->getBrowsershot();
 
-        $browser = $browserFactory->createBrowser([
-            'noSandbox' => true,
-        ]);
+        $browsershot->setUrl($request->websiteUrl);
+        $browsershot->setOption('waitUntil', $request->waitUntil);
 
-        try {
-            $page = $browser->createPage();
+        $this->crawler
+            ->setCrawlObserver($this->crawlObserver)
+            ->setCrawlQueue(new ArrayCrawlQueue)
+            ->setTotalCrawlLimit(1)
+            ->startCrawling($request->websiteUrl);
 
-            $responses = collect();
-            $page->getSession()->on('method:Network.responseReceived',
-                function ($params) use (&$responses) {
-                    $responses->push($params['response']);
-                }
-            );
+        $crawledPage = $this->crawlObserver->getCrawlData();
 
-            $page->navigate($request->websiteUrl)->waitForNavigation($request->waitUntil->value);
+        $redirects = collect($browsershot->redirectHistory() ?? []);
 
-            $data = $this->crawlDataFactory->fromPage($page);
+        // Check if we were redirected
+        if ($redirects->count() > 1) {
+            $firstRedirect = $redirects->first();
+            $lastRedirect = $redirects->last();
 
-            $browser->close();
+            /** @var string|null $lastRedirectUrl */
+            $lastRedirectUrl = data_get($lastRedirect, 'url');
+            if (! $lastRedirectUrl) {
+                throw new \Exception('Failed to determine last redirect url');
+            }
 
-            return $data;
-        } catch (\Throwable $e) {
-            $browser->close();
+            // Crawl the redirected URL instead
+            $redirectRequest = clone $request;
+            $redirectRequest->websiteUrl = $lastRedirectUrl;
+            $crawledPage = app(self::class)->singleCrawlUrl($redirectRequest);
 
-            throw $e;
+            /** @var int $responseCode */
+            $responseCode = data_get($firstRedirect, 'status', $crawledPage->response_code);
+            /** @var string $redirectFrom */
+            $redirectFrom = data_get($firstRedirect, 'url', '');
+            /** @var string[] $redirectToUrls */
+            $redirectToUrls = collect($redirects)->skip(1)->pluck('url')->all();
+
+            // Update crawled page to include redirect data
+            $crawledPage->response_code = $responseCode;
+            $crawledPage->redirect_from = $redirectFrom;
+            $crawledPage->redirects_to = $redirectToUrls;
         }
+
+        if (! $crawledPage) {
+            throw new \Exception("Failed to get crawl data for {$request->websiteUrl}");
+        }
+
+        if ($request->performance) {
+            $performanceDataJson = $browsershot->evaluate('JSON.stringify(window.performance.getEntries())');
+            /** @var array<string, mixed> $performanceData */
+            $performanceData = $performanceDataJson ? json_decode($performanceDataJson, true) : [];
+
+            $crawledPage = $this->crawlDataFactory->parsePerformance($crawledPage, $performanceData);
+        }
+
+        return $crawledPage;
     }
 }
