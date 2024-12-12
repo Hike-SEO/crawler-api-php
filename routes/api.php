@@ -20,5 +20,5 @@ Route::prefix('websites')->group(function () {
     Route::delete('/{website}', Api\Websites\DeleteController::class)->name('api.websites.delete');
 });
 
+Route::post('/sitemap', Api\SitemapController::class)->name('api.sitemap');
 Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
-Route::post('/crawl/sitemap', Api\SitemapController::class)->name('api.crawl.sitemap');

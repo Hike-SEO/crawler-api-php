@@ -2,25 +2,33 @@
 
 namespace App\Services;
 
+use App\Data\Sitemap\SitemapData;
 use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
 use XMLReader;
 
 class SitemapService
 {
-    public array $urls = [];
+    private SitemapData $sitemapData;
 
-    public function fetch(string $url): array
+    public function __construct(
+    ) {
+        $this->sitemapData = new SitemapData(
+            indices: [],
+            urls: []
+        );
+    }
+
+    public function fetch(string $url): SitemapData
     {
         $this->crawl($url);
 
-        return $this->urls;
+        return $this->sitemapData;
     }
 
     protected function crawl(string $url): void
     {
         try {
-            throw new \Exception();
             $response = Http::get($url)->throw()->body();
 
             $this->parse($response);
@@ -31,7 +39,7 @@ class SitemapService
         }
     }
 
-    protected function parse(string $response)
+    protected function parse(string $response, ?string $indices = null): void
     {
         $reader = XMLReader::XML($response);
 
@@ -39,17 +47,20 @@ class SitemapService
             // If sitemap index we need to follow and return the urls in the next sitemap
             $xml = new SimpleXMLElement($reader->readOuterXML());
 
+            // Check if the sitemap link is an indices
             if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'sitemapindex') {
                 foreach ($xml->sitemap as $sitemap) {
-                    $sitemapChildResponse = Http::get($sitemap->loc->__toString());
+                    $url = $sitemap->loc->__toString();
 
-                    $this->parse($sitemapChildResponse->body());
+                    $sitemapChildResponse = Http::get($url);
+
+                    $this->parse($sitemapChildResponse->body(), $url);
                 }
             }
 
             if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'urlset') {
                 foreach ($xml as $node) {
-                    $this->setUrl($node->loc->__toString());
+                    $this->setUrl($node->loc->__toString(), $indices);
                 }
             }
 
@@ -59,8 +70,12 @@ class SitemapService
         }
     }
 
-    protected function setUrl(string $url): void
+    protected function setUrl(string $url, ?string $indices = null): void
     {
-        $this->urls[] = $url;
+        if ($indices) {
+            $this->sitemapData->indices[$indices][] = $url;
+        }
+
+        $this->sitemapData->urls[] = $url;
     }
 }

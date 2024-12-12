@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Data;
+namespace App\Data\Sitemap;
 
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-class SitemapData extends Data
+#[MapInputName(SnakeCaseMapper::class)]
+class SitemapRequest extends Data
 {
     public function __construct(
-        #[MapInputName('website_url')]
-        public string $websiteUrl,
+        public string $sitemapUrl,
     ) {}
 
     /**
@@ -18,7 +19,7 @@ class SitemapData extends Data
     public static function rules(): array
     {
         return [
-            'website_url' => [
+            'sitemap_url' => [
                 'required',
                 'url',
             ],
