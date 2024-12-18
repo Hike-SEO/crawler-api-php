@@ -119,7 +119,7 @@ class CrawlDataFactory
         return collect($nodes->toArray())
             ->filter(function (HtmlNode $node) use ($shouldMatchHost, $baseUri) {
                 $href = $node->getAttribute('href');
-                if (! $href || Str::startsWith($href, ['#'])) {
+                if (!$href || Str::startsWith($href, ['#'])) {
                     return false;
                 }
 
