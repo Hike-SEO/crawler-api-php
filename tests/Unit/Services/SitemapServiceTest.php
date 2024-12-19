@@ -4,7 +4,9 @@ namespace Tests\Unit\Services;
 
 use App\Services\SitemapService;
 use Http;
+use Mockery\MockInterface;
 use Tests\TestCase;
+use vipnytt\SitemapParser;
 
 class SitemapServiceTest extends TestCase
 {
@@ -29,7 +31,7 @@ class SitemapServiceTest extends TestCase
             ]),
         ]);
 
-        $result = $this->sitemapService->fetch('https://example.com/sitemap.xml');
+        $result = $this->sitemapService->parse('https://example.com/sitemap.xml');
 
         $urls = [
             'https://example.com/about',
@@ -54,7 +56,40 @@ class SitemapServiceTest extends TestCase
             ]),
         ]);
 
-        $result = $this->sitemapService->fetch('https://example.com/sitemap.xml');
+        $this->mock(SitemapParser::class, function (MockInterface $mock) {
+            $mock->shouldReceive('parseRecursive')
+                ->once()
+                ->with('https://example.com/sitemap.xml');
+
+            $mock->shouldReceive('getURLs')
+                ->once()
+                ->andReturn([
+                    'https://example.com/sitemap.xml' => [
+                        'namespaces' => [
+                            'xhtml' => [],
+                            'image' => [],
+                            'video' => [],
+                            'news' => [],
+                        ],
+                        'loc' => 'https://example.com/sitemap.xml',
+                        'changefreq' => 'daily',
+                        'priority' => '0.8',
+                        'lastmod' => null,
+                    ],
+                ]);
+
+            $mock->shouldReceive('getSitemaps')
+                ->once()
+                ->andReturn([
+                    "https://laravel.com/sitemap_pages.xml" => [
+                        "namespaces" => [],
+                        "loc" => "https://laravel.com/sitemap_pages.xml",
+                        "lastmod" => "2024-12-19T00:00:17+00:00",
+                    ]
+                ]);
+        });
+
+        $result = $this->sitemapService->parse('https://example.com/sitemap.xml');
 
         $expectedIndices = [
             'https://example.com/sitemap_pages.xml' => [
