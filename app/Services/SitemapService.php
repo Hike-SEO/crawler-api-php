@@ -3,16 +3,18 @@
 namespace App\Services;
 
 use App\Data\Sitemap\SitemapData;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
-use XMLReader;
 
 class SitemapService
 {
+    private const SITEMAP_NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+
     private SitemapData $sitemapData;
 
-    public function __construct(
-    ) {
+    public function __construct()
+    {
         $this->sitemapData = new SitemapData(
             indices: [],
             urls: []
@@ -30,41 +32,85 @@ class SitemapService
     {
         try {
             $response = Http::get($url)->throw()->body();
-
             $this->parse($response);
-        } catch (\Exception) {
+        } catch (Exception $e) {
             // TODO: Add exception capture
-
             return;
         }
     }
 
     protected function parse(string $response, ?string $indices = null): void
     {
-        $reader = XMLReader::XML($response);
+        try {
+            // Remove any XML processing instructions and comments
+            $response = preg_replace('/<\?[^>]*\?>/', '', $response);
+            $response = preg_replace('/<!--.*?-->/s', '', $response);
 
-        while ($reader->read()) {
-            // If sitemap index we need to follow and return the urls in the next sitemap
-            $xml = new SimpleXMLElement($reader->readOuterXML());
+            $xml = new SimpleXMLElement($response);
 
-            // Check if the sitemap link is an indices
-            if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'sitemapindex') {
-                foreach ($xml->sitemap as $sitemap) {
-                    $url = $sitemap->loc->__toString();
+            $namespaces = $xml->getNamespaces(true);
+            $defaultNs = $namespaces[''] ?? self::SITEMAP_NAMESPACE;
+            $xml->registerXPathNamespace('sm', $defaultNs);
 
-                    $sitemapChildResponse = Http::get($url);
-
-                    $this->parse($sitemapChildResponse->body(), $url);
-                }
+            // First try to parse as sitemap index
+            if ($this->parseSitemapIndex($xml, $indices)) {
+                return;
             }
 
-            if ($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'urlset') {
-                foreach ($xml as $node) {
-                    $this->setUrl($node->loc->__toString(), $indices);
+            // If not a sitemap index, try to parse as URL set
+            $this->parseUrlset($xml, $indices);
+
+        } catch (Exception $e) {
+            // TODO: Add exception capture
+
+            return;
+        }
+    }
+
+    protected function parseSitemapIndex(SimpleXMLElement $xml, ?string $indices): bool
+    {
+        $sitemaps = $xml->xpath('//sm:sitemapindex/sm:sitemap/sm:loc');
+
+        if (empty($sitemaps)) {
+            return false;
+        }
+
+        foreach ($sitemaps as $sitemap) {
+            $url = (string) $sitemap;
+            if (! empty($url)) {
+                try {
+                    $sitemapResponse = Http::get($url)->throw()->body();
+                    $this->parse($sitemapResponse, $url);
+                } catch (Exception $e) {
+                    continue;
                 }
             }
+        }
 
-            if (preg_match('/\n\s*/', $reader->readOuterXml())) {
+        return true;
+    }
+
+    protected function parseUrlset(SimpleXMLElement $xml, ?string $indices): void
+    {
+        // Different XPath patterns for URLs
+        $urlPatterns = [
+            '//sm:urlset/sm:url/sm:loc',  // Standard sitemap
+            '//urlset/url/loc',           // No namespace
+            '//url/loc',                  // Simple structure
+            '//sm:loc',                   // Direct loc elements
+            '//loc',                      // Direct loc without namespace
+        ];
+
+        foreach ($urlPatterns as $pattern) {
+            $urls = $xml->xpath($pattern);
+            if (! empty($urls)) {
+                foreach ($urls as $urlNode) {
+                    $url = (string) $urlNode;
+                    if (! empty($url)) {
+                        $this->setUrl($url, $indices);
+                    }
+                }
+
                 return;
             }
         }
@@ -72,10 +118,21 @@ class SitemapService
 
     protected function setUrl(string $url, ?string $indices = null): void
     {
+        $url = trim($url);
+
+        if (empty($url) || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return;
+        }
+
         if ($indices) {
+            if (! isset($this->sitemapData->indices[$indices])) {
+                $this->sitemapData->indices[$indices] = [];
+            }
             $this->sitemapData->indices[$indices][] = $url;
         }
 
-        $this->sitemapData->urls[] = $url;
+        if (! in_array($url, $this->sitemapData->urls)) {
+            $this->sitemapData->urls[] = $url;
+        }
     }
 }
