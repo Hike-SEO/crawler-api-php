@@ -22,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(Crawler::class, function ($app) {
             return Crawler::create()
-                ->executeJavaScript()
-                ->setBrowsershot($app->make(Browsershot::class));
+                ->setBrowsershot($app->make(Browsershot::class))
+                ->executeJavaScript();
         });
     }
 

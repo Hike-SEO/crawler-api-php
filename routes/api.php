@@ -19,6 +19,9 @@ Route::prefix('/crawl')
         Route::post('single', Api\SingleCrawlController::class)
             ->name('single');
 
+        Route::post('full', Api\FullCrawlController::class)
+            ->name('full');
+
         Route::post('robots', Api\RobotsController::class)
             ->name('robots');
     });
@@ -37,5 +40,4 @@ Route::prefix('/capture')
     ->group(function () {
         Route::post('/pdf', Api\PdfController::class)->name('pdf');
         Route::post('/screenshot', Api\ScreenshotController::class)->name('screenshot');
-
     });

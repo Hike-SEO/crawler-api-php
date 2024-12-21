@@ -5,12 +5,17 @@ namespace Tests\Unit\Services;
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Data\ScreenshotResult;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\PdfRequest;
 use App\Http\Requests\ScreenshotRequest;
 use App\Http\Requests\SingleCrawlRequest;
+use App\Jobs\CrawlPageJob;
+use App\Models\FullCrawl;
+use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
 use App\Services\Crawler;
 use App\Services\CrawlService;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Mockery\MockInterface;
@@ -42,7 +47,7 @@ class CrawlServiceTest extends TestCase
         $this->crawlService = app(CrawlService::class);
 
         $this->crawler
-            ->expects('getBrowsershot')
+            ->shouldReceive('getBrowsershot')
             ->andReturn($this->browsershot);
     }
 
@@ -70,6 +75,9 @@ class CrawlServiceTest extends TestCase
 
         $this->crawler->expects('setTotalCrawlLimit')
             ->with(1)
+            ->andReturnSelf();
+
+        $this->crawler->expects('ignoreRobots')
             ->andReturnSelf();
     }
 
@@ -214,6 +222,28 @@ class CrawlServiceTest extends TestCase
         $this->expectExceptionMessage('Failed to get crawl data for https://hikeseo.co/');
 
         $this->crawlService->singleCrawlUrl($request);
+    }
+
+    public function test_start_full_crawl(): void
+    {
+        Bus::fake();
+
+        $website = Website::factory()->create();
+        $request = FullCrawlRequest::from([
+            'websiteId' => $website->id,
+        ]);
+
+        $result = $this->crawlService->startFullCrawl($website, $request);
+
+        Bus::assertDispatched(CrawlPageJob::class, function (CrawlPageJob $job) use ($website, $request) {
+            $this->assertEquals($website->url, $job->url);
+            $this->assertEquals($request->toArray(), $job->crawlRequest->toArray());
+            $this->assertEquals($website->id, $job->fullCrawl->website_id);
+
+            return true;
+        });
+
+        $this->assertInstanceOf(FullCrawl::class, $result);
     }
 
     public function test_get_pdf(): void

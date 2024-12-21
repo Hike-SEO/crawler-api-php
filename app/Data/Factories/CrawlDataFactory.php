@@ -97,12 +97,14 @@ class CrawlDataFactory
         /** @var Dom\Collection $nodes */
         $nodes = $dom->find('img');
 
-        return collect($nodes->toArray())->map(function (HtmlNode $node) {
-            return CrawledPageImage::from([
-                'src' => $node->getAttribute('src'),
-                'alt' => $node->getAttribute('alt') ?: null,
-            ]);
-        });
+        return collect($nodes->toArray())
+            ->filter(fn (HtmlNode $node) => $node->getAttribute('src') !== null)
+            ->map(function (HtmlNode $node) {
+                return CrawledPageImage::from([
+                    'src' => $node->getAttribute('src'),
+                    'alt' => $node->getAttribute('alt') ?: null,
+                ]);
+            });
     }
 
     /**
@@ -126,9 +128,20 @@ class CrawlDataFactory
                 $href = new Uri($href);
 
                 return $shouldMatchHost === ($href->getHost() === $baseUri->getHost() || $href->getHost() === '');
-            })->map(function (HtmlNode $node) {
+            })->map(function (HtmlNode $node) use ($baseUri) {
+
+                /** @var string $href */
+                $href = $node->getAttribute('href');
+                $href = new Uri($href);
+
+                // Fix relative URLs
+                if ($href->getHost() === '') {
+                    $href = $href->withHost($baseUri->getHost());
+                    $href = $href->withScheme($baseUri->getScheme());
+                }
+
                 return CrawledPageLink::from([
-                    'url' => $node->getAttribute('href'),
+                    'url' => $href->__toString(),
                     'rel' => $node->getAttribute('rel'),
                     'anchor' => [
                         'nodeName' => $node->getTag()->name(),

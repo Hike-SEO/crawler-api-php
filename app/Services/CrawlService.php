@@ -8,9 +8,13 @@ use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Data\ScreenshotResult;
 use App\Enums\ScreenshotViewport;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\PdfRequest;
 use App\Http\Requests\ScreenshotRequest;
 use App\Http\Requests\SingleCrawlRequest;
+use App\Jobs\CrawlPageJob;
+use App\Models\FullCrawl;
+use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -20,7 +24,7 @@ class CrawlService
 {
     public function __construct(
         private readonly Crawler $crawler,
-        private readonly SimpleCrawlObserver $crawlObserver,
+        private readonly SimpleCrawlObserver $simpleCrawlObserver,
         private readonly CrawlDataFactory $crawlDataFactory,
     ) {}
 
@@ -32,12 +36,13 @@ class CrawlService
         $browsershot->setOption('waitUntil', $request->waitUntil);
 
         $this->crawler
-            ->setCrawlObserver($this->crawlObserver)
+            ->setCrawlObserver($this->simpleCrawlObserver)
             ->setCrawlQueue(new ArrayCrawlQueue)
             ->setTotalCrawlLimit(1)
+            ->ignoreRobots()
             ->startCrawling($request->websiteUrl);
 
-        $crawledPage = $this->crawlObserver->getCrawlData();
+        $crawledPage = $this->simpleCrawlObserver->getCrawlData();
 
         $redirects = collect($browsershot->redirectHistory() ?? []);
 
@@ -83,6 +88,18 @@ class CrawlService
         }
 
         return $crawledPage;
+    }
+
+    public function startFullCrawl(Website $website, FullCrawlRequest $request): FullCrawl
+    {
+        $fullCrawl = FullCrawl::query()
+            ->create([
+                'website_id' => $website->id,
+            ]);
+
+        CrawlPageJob::dispatch($fullCrawl->website->url, $fullCrawl, $request);
+
+        return $fullCrawl;
     }
 
     public function getPdf(PdfRequest $request): string
