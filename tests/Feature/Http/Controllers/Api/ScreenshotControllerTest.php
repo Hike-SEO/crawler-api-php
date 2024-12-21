@@ -31,7 +31,7 @@ class ScreenshotControllerTest extends TestCase
             })
             ->andReturn($expectedResult);
 
-        $this->withHeader('x-api-key', config('crawler.api_key'))
+        $this->usingTestApiToken()
             ->postJson(route('api.capture.screenshot'), $requestBody)
             ->assertSuccessful()
             ->assertJson($expectedResult->toArray());

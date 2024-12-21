@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Feature\Http\Controllers\Websites;
 
 use App\Enums\WaitUntil;
-use App\Http\Middleware\AuthenticateSecretKey;
 use App\Http\Requests\Websites\StoreRequest;
 use App\Models\Website;
 use App\Services\WebsiteService;
@@ -31,7 +30,7 @@ class CreateControllerTest extends TestCase
         ]);
 
         $this
-            ->withoutMiddleware([AuthenticateSecretKey::class])
+            ->usingTestApiToken()
             ->postJson(route('api.websites.create'), $input)
             ->assertJsonValidationErrors($expectedErrors);
     }
@@ -62,7 +61,7 @@ class CreateControllerTest extends TestCase
             ->andReturnUsing(fn () => Website::factory()->create());
 
         $this
-            ->withoutMiddleware([AuthenticateSecretKey::class])
+            ->usingTestApiToken()
             ->postJson(route('api.websites.create'), $data)
             ->assertCreated()
             ->assertJsonStructure([
