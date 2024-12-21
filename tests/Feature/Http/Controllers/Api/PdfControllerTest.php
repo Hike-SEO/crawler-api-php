@@ -28,7 +28,7 @@ class PdfControllerTest extends TestCase
             })
             ->andReturn($pdfString);
 
-        $this->withHeader('x-api-key', config('crawler.api_key'))
+        $this->usingTestApiToken()
             ->postJson(route('api.capture.pdf'), $requestBody)
             ->assertSuccessful()
             ->assertHeader('Content-Type', 'application/pdf')

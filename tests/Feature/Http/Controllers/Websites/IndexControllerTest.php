@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Http\Controllers\Websites;
 
-use App\Http\Middleware\AuthenticateSecretKey;
 use App\Models\Website;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -24,7 +23,7 @@ class IndexControllerTest extends TestCase
             ->create();
 
         $this
-            ->withoutMiddleware([AuthenticateSecretKey::class])
+            ->usingTestApiToken()
             ->getJson(route('api.websites.index'))
             ->assertOk()
             ->assertJsonCount(3, 'data')

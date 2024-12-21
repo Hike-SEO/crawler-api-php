@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Websites;
 
-use App\Http\Middleware\AuthenticateSecretKey;
 use App\Models\Website;
 use App\Services\WebsiteService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,7 +36,7 @@ class DeleteControllerTest extends TestCase
             });
 
         $this
-            ->withoutMiddleware([AuthenticateSecretKey::class])
+            ->usingTestApiToken()
             ->delete(route('api.websites.delete', [$website]))
             ->assertNoContent();
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Websites;
 
 use App\Enums\WaitUntil;
-use App\Http\Middleware\AuthenticateSecretKey;
 use App\Http\Requests\Websites\StoreRequest;
 use App\Models\Website;
 use App\Services\WebsiteService;
@@ -36,7 +35,7 @@ class UpdateControllerTest extends TestCase
             'url' => 'https://example.com',
         ]);
         $this
-            ->withoutMiddleware([AuthenticateSecretKey::class])
+            ->usingTestApiToken()
             ->putJson(route('api.websites.update', [$website]), $input)
             ->assertUnprocessable()
             ->assertJsonValidationErrors($expectedErrors);
@@ -73,7 +72,7 @@ class UpdateControllerTest extends TestCase
             ->andReturnUsing(fn () => $website->fresh());
 
         $this
-            ->withoutMiddleware([AuthenticateSecretKey::class])
+            ->usingTestApiToken()
             ->putJson(route('api.websites.update', [$website]), $data)
             ->assertOk()
             ->assertJsonStructure([
