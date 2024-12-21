@@ -22,3 +22,14 @@ Route::prefix('/crawl')
         Route::post('robots', Api\RobotsController::class)
             ->name('robots');
     });
+
+Route::prefix('websites')->group(function () {
+    Route::get('/', Api\Websites\IndexController::class)->name('api.websites.index');
+    Route::post('/', Api\Websites\CreateController::class)->name('api.websites.create');
+    Route::put('/{website}', Api\Websites\UpdateController::class)->name('api.websites.update');
+    Route::delete('/{website}', Api\Websites\DeleteController::class)->name('api.websites.delete');
+});
+
+Route::post('/capture/pdf', Api\PdfController::class)->name('api.capture.pdf');
+
+Route::post('/capture/screenshot', Api\ScreenshotController::class)->name('api.capture.screenshot');
