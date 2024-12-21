@@ -52,4 +52,10 @@ class FullCrawlControllerTest extends TestCase
             ])
             ->assertJsonPath('data.id', $fullCrawl->id);
     }
+
+    public function test_returns_running_full_crawl(): void
+    {
+        // TODO
+        $this->markTestIncomplete();
+    }
 }
