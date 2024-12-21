@@ -4,8 +4,8 @@ namespace Tests\Unit\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
-use App\Http\Requests\FullCrawlRequest;
 use App\Data\ScreenshotResult;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\PdfRequest;
 use App\Http\Requests\ScreenshotRequest;
 use App\Http\Requests\SingleCrawlRequest;
@@ -15,9 +15,9 @@ use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
 use App\Services\Crawler;
 use App\Services\CrawlService;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Bus;
 use Mockery\MockInterface;
 use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\CrawlObservers\CrawlObserver;
@@ -47,7 +47,7 @@ class CrawlServiceTest extends TestCase
         $this->crawlService = app(CrawlService::class);
 
         $this->crawler
-            ->expects('getBrowsershot')
+            ->shouldReceive('getBrowsershot')
             ->andReturn($this->browsershot);
     }
 
@@ -58,10 +58,6 @@ class CrawlServiceTest extends TestCase
 
         $this->browsershot->expects('setOption')
             ->with('waitUntil', $request->waitUntil);
-
-        $this->crawler
-            ->expects('getBrowsershot')
-            ->andReturn($this->browsershot);
 
         $this->crawler->expects('setCrawlObserver')
             ->withArgs(function (CrawlObserver $observer) {

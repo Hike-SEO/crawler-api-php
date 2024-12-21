@@ -6,9 +6,9 @@ namespace App\Services;
 
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
-use App\Http\Requests\FullCrawlRequest;
 use App\Data\ScreenshotResult;
 use App\Enums\ScreenshotViewport;
+use App\Http\Requests\FullCrawlRequest;
 use App\Http\Requests\PdfRequest;
 use App\Http\Requests\ScreenshotRequest;
 use App\Http\Requests\SingleCrawlRequest;
