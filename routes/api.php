@@ -13,10 +13,31 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::prefix('/crawl')
+    ->name('api.crawl.')
+    ->group(function () {
+        Route::post('single', Api\SingleCrawlController::class)
+            ->name('single');
 
-Route::prefix('websites')->group(function () {
-    Route::post('/', Api\Websites\CreateController::class)->name('api.websites.create');
-});
+        Route::post('full', Api\FullCrawlController::class)
+            ->name('full');
 
-Route::post('/crawl/single', Api\SingleCrawlController::class)->name('api.crawl.single');
-Route::post('/crawl/full', Api\FullCrawlController::class)->name('api.crawl.full');
+        Route::post('robots', Api\RobotsController::class)
+            ->name('robots');
+    });
+
+Route::prefix('websites')
+    ->name('api.websites.')
+    ->group(function () {
+        Route::get('/', Api\Websites\IndexController::class)->name('index');
+        Route::post('/', Api\Websites\CreateController::class)->name('create');
+        Route::put('/{website}', Api\Websites\UpdateController::class)->name('update');
+        Route::delete('/{website}', Api\Websites\DeleteController::class)->name('delete');
+    });
+
+Route::prefix('/capture')
+    ->name('api.capture.')
+    ->group(function () {
+        Route::post('/pdf', Api\PdfController::class)->name('pdf');
+        Route::post('/screenshot', Api\ScreenshotController::class)->name('screenshot');
+    });

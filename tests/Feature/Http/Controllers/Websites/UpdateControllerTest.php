@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Feature\Http\Controllers\Websites;
+namespace Tests\Feature\Http\Controllers\Websites;
 
 use App\Enums\WaitUntil;
 use App\Http\Requests\Websites\StoreRequest;
@@ -12,30 +12,36 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-class CreateControllerTest extends TestCase
+class UpdateControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_must_be_authenticated(): void
     {
-        $this->postJson(route('api.websites.create'), [])
+        $website = Website::factory()->create();
+
+        $this->putJson(route('api.websites.update', [$website]), [])
             ->assertUnauthorized();
     }
 
     #[DataProvider('validatesInputDataProvider')]
     public function test_validates_input(array $input, array $expectedErrors): void
     {
-        Website::factory()->create([
-            'url' => 'https://example.com',
+        $website = Website::factory()->create([
+            'url' => 'https://demo.com',
         ]);
 
+        $otherWebsite = Website::factory()->create([
+            'url' => 'https://example.com',
+        ]);
         $this
             ->usingTestApiToken()
-            ->postJson(route('api.websites.create'), $input)
+            ->putJson(route('api.websites.update', [$website]), $input)
+            ->assertUnprocessable()
             ->assertJsonValidationErrors($expectedErrors);
     }
 
-    public function test_it_creates_website(): void
+    public function test_it_updates_website(): void
     {
         $data = [
             'url' => 'https://example.com',
@@ -46,9 +52,14 @@ class CreateControllerTest extends TestCase
             'hike_user_agent' => true,
         ];
 
+        $website = Website::factory()->create([
+            'url' => 'https://example.com',
+        ]);
+
         $service = $this->mock(WebsiteService::class);
-        $service->expects('createWebsite')
-            ->withArgs(function (StoreRequest $request) use ($data) {
+        $service->expects('updateWebsite')
+            ->withArgs(function (Website $websiteArg, StoreRequest $request) use ($website, $data) {
+                $this->assertTrue($website->is($websiteArg));
                 $this->assertEquals($data['url'], $request->url);
                 $this->assertEquals($data['ignore_robots_txt'], $request->ignoreRobotsTxt);
                 $this->assertEquals($data['wait_until'], $request->waitUntil->value);
@@ -58,12 +69,12 @@ class CreateControllerTest extends TestCase
 
                 return true;
             })
-            ->andReturnUsing(fn () => Website::factory()->create());
+            ->andReturnUsing(fn () => $website->fresh());
 
         $this
             ->usingTestApiToken()
-            ->postJson(route('api.websites.create'), $data)
-            ->assertCreated()
+            ->putJson(route('api.websites.update', [$website]), $data)
+            ->assertOk()
             ->assertJsonStructure([
                 'data' => [
                     'id',

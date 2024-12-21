@@ -33,4 +33,29 @@ class WebsiteServiceTest extends TestCase
             ...$request->toArray(),
         ]);
     }
+
+    public function test_update_website(): void
+    {
+        $website = Website::factory()->create();
+        $request = StoreRequest::fake();
+
+        $result = $this->service->updateWebsite($website, $request);
+
+        $this->assertTrue($result->is($website));
+        $this->assertDatabaseHas(Website::class, [
+            'id' => $website->id,
+            ...$request->toArray(),
+        ]);
+    }
+
+    public function test_delete_website(): void
+    {
+        $website = Website::factory()->create();
+
+        $this->service->deleteWebsite($website);
+
+        $this->assertDatabaseMissing(Website::class, [
+            'id' => $website->id,
+        ]);
+    }
 }

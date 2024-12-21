@@ -5,6 +5,9 @@ namespace Tests\Unit\Services;
 use App\Data\CrawledPage;
 use App\Data\Factories\CrawlDataFactory;
 use App\Http\Requests\FullCrawlRequest;
+use App\Data\ScreenshotResult;
+use App\Http\Requests\PdfRequest;
+use App\Http\Requests\ScreenshotRequest;
 use App\Http\Requests\SingleCrawlRequest;
 use App\Jobs\CrawlPageJob;
 use App\Models\FullCrawl;
@@ -12,6 +15,8 @@ use App\Models\Website;
 use App\Observers\SimpleCrawlObserver;
 use App\Services\Crawler;
 use App\Services\CrawlService;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Bus;
 use Mockery\MockInterface;
 use Spatie\Browsershot\Browsershot;
@@ -40,6 +45,10 @@ class CrawlServiceTest extends TestCase
         $this->simpleObserver = $this->partialMock(SimpleCrawlObserver::class);
         $this->crawlDataFactory = $this->partialMock(CrawlDataFactory::class);
         $this->crawlService = app(CrawlService::class);
+
+        $this->crawler
+            ->expects('getBrowsershot')
+            ->andReturn($this->browsershot);
     }
 
     protected function setupSingleCrawl(SingleCrawlRequest $request): void
@@ -239,5 +248,71 @@ class CrawlServiceTest extends TestCase
         });
 
         $this->assertInstanceOf(FullCrawl::class, $result);
+    }
+
+    public function test_get_pdf(): void
+    {
+        $request = PdfRequest::from([
+            'website_url' => 'https://hikeseo.co/',
+            'wait_until' => 'domcontentloaded',
+        ]);
+
+        $expectedResult = Str::random();
+
+        $this->browsershot->expects('setUrl')
+            ->with($request->websiteUrl)
+            ->andReturnSelf();
+
+        $this->browsershot->expects('setOption')
+            ->with('waitUntil', $request->waitUntil)
+            ->andReturnSelf();
+
+        $this->browsershot->expects('format')
+            ->with('A4')
+            ->andReturnSelf();
+
+        $this->browsershot->expects('pdf')
+            ->andReturn($expectedResult);
+
+        $result = $this->crawlService->getPdf($request);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function test_screenshot(): void
+    {
+        $disk = config('capture.storage.disk');
+        Storage::fake($disk);
+
+        config(['capture.storage.screenshot_path' => 'screenshots']);
+
+        $request = ScreenshotRequest::from([
+            'website_url' => 'https://hikeseo.co/',
+            'wait_until' => 'domcontentloaded',
+        ]);
+
+        $expectedResult = Str::random();
+
+        $this->browsershot->expects('setUrl')
+            ->with($request->websiteUrl)
+            ->andReturnSelf();
+
+        $this->browsershot->expects('setOption')
+            ->with('waitUntil', $request->waitUntil)
+            ->andReturnSelf();
+
+        $this->browsershot->expects('windowSize')
+            ->andReturnSelf();
+
+        $this->browsershot->expects('screenshot')
+            ->andReturn($expectedResult);
+
+        $result = $this->crawlService->getScreenshot($request);
+
+        $this->assertInstanceOf(ScreenshotResult::class, $result);
+
+        $filePath = rtrim($result->path, '/').'/'.$result->filename;
+
+        Storage::disk($disk)->assertExists($filePath);
     }
 }
