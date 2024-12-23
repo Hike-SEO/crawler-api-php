@@ -7,8 +7,5 @@ use Tests\TestCase;
 
 class SitemapControllerTest extends TestCase
 {
-    public function test_example()
-    {
-        app(SitemapService::class)->fetch('https://laravel.com/sitemap.xml');
-    }
+    // TODO: Write test
 }

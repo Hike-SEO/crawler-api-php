@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Data\Sitemap\SitemapData;
 use vipnytt\SitemapParser;
 use vipnytt\SitemapParser\Exceptions\SitemapParserException;
+use function Sentry\captureException;
 
 class SitemapService
 {
@@ -21,29 +22,23 @@ class SitemapService
     public function parse(string $url): SitemapData
     {
         try {
-            $parser = new SitemapParser;
-            dd($parser);
+            $parser = app(SitemapParser::class);
             $parser->parseRecursive($url);
 
-            dd($parser->getSitemaps());
+            // Get URLs from the sitemap (needed in case the sitemap is not an index)
+            $this->sitemapData->urls = array_keys($parser->getURLs());
 
-            // Get all URLs
-            foreach ($parser->getURLs() as $url => $tags) {
-                $this->sitemapData->urls[] = $url;
-            }
-
-            // Get sitemaps and their URLs
+            // Get sitemap index and their URLs
             foreach ($parser->getSitemaps() as $sitemapUrl => $tags) {
-                $subParser = new SitemapParser;
+                $subParser = app(SitemapParser::class);
                 $subParser->parse($sitemapUrl);
 
-                $this->sitemapData->indices[$sitemapUrl] = array_keys($subParser->getURLs());
+                $urls = array_keys($subParser->getURLs());
+
+                $this->sitemapData->indices[$sitemapUrl] = $urls;
             }
-
-            dd($this->sitemapData);
-
         } catch (SitemapParserException $e) {
-            // Handle parsing errors if needed
+            captureException($e);
         }
 
         return $this->sitemapData;
